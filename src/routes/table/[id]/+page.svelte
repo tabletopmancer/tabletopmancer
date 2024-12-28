@@ -1,5 +1,7 @@
 <script lang="ts">
   import { UserCog, UserPlus } from 'lucide-svelte'
+  import FileTree from '$lib/components/FileTree.svelte'
+
   let { data } = $props()
 </script>
 
@@ -15,9 +17,7 @@
 
   <div aria-label="Maps and tokens renderer"></div>
 
-  <ul aria-label="Assets">
-    {#each data.assets as asset}
-      <li>{asset}</li>
-    {/each}
-  </ul>
+  <div aria-label="Assets">
+    <FileTree files={data.assets} />
+  </div>
 </main>

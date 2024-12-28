@@ -25,9 +25,9 @@ export const load: PageServerLoad = async ({ params }) => {
   )
 
   // TODO: Categories all the assets
-  const assets = matches.map((p) =>
-    path.relative(path.join(tablePath, 'codexes'), p)
-  )
+  const assets = matches
+    .map((p) => path.relative(path.join(tablePath, 'codexes'), p))
+    .sort((a, b) => a.localeCompare(b))
 
   return {
     // TODO: Get the role from IP (in hooks)?
