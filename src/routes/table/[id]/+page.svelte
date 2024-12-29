@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { UserCog, UserPlus } from 'lucide-svelte'
+  import { Rss, UserCog, UserPlus } from 'lucide-svelte'
   import AssetDrawer from '$lib/components/AssetDrawer.svelte'
-  import SceneRenderer from '$lib/components/SceneRenderer.svelte'
+  import GameBoard from '$lib/components/Board.svelte'
 
   let { data } = $props()
 </script>
@@ -11,6 +11,11 @@
 >
   {#if data.role === 'DM'}
     <ul class="mb-6 flex justify-end gap-4" role="navigation">
+      <li>
+        <button class="cursor-pointer" aria-label="Open the session">
+          <Rss />
+        </button>
+      </li>
       <li>
         <button class="cursor-pointer" aria-label="Invite players">
           <UserPlus />
@@ -24,7 +29,7 @@
     </ul>
   {/if}
 
-  <SceneRenderer />
+  <GameBoard />
 
   {#if data.role === 'DM'}
     <AssetDrawer assets={data.assets} />
