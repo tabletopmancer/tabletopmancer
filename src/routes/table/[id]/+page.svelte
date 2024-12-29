@@ -1,6 +1,6 @@
 <script lang="ts">
   import { UserCog, UserPlus } from 'lucide-svelte'
-  import FileTree from '$lib/components/FileTree.svelte'
+  import AssetDrawer from '$lib/components/AssetDrawer.svelte'
 
   let { data } = $props()
 </script>
@@ -18,6 +18,6 @@
   <div aria-label="Maps and tokens renderer"></div>
 
   <div aria-label="Assets">
-    <FileTree files={data.assets} />
+    <AssetDrawer assets={data.assets} />
   </div>
 </main>
