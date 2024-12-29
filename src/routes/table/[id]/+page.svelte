@@ -1,6 +1,7 @@
 <script lang="ts">
   import { UserCog, UserPlus } from 'lucide-svelte'
   import AssetDrawer from '$lib/components/AssetDrawer.svelte'
+  import SceneRenderer from '$lib/components/SceneRenderer.svelte'
 
   let { data } = $props()
 </script>
@@ -23,7 +24,7 @@
     </ul>
   {/if}
 
-  <div aria-label="Maps and tokens renderer"></div>
+  <SceneRenderer />
 
   {#if data.role === 'DM'}
     <AssetDrawer assets={data.assets} />

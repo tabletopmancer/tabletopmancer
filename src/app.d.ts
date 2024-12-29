@@ -24,6 +24,7 @@ declare global {
     mimetype: string
     thumbnail: string
     codex: Codex
+    url: string
   }
 }
 

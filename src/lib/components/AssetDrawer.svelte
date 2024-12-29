@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Grid2x2, Image, FileJson, Box, Music, Map } from 'lucide-svelte'
   import tooltip from '$lib/actions/tooltip.js'
+  import { draggable } from '$lib/actions/drag-n-drop.js'
 
   let { assets }: { assets: Asset[] } = $props()
 
@@ -50,7 +51,7 @@
   role="region"
   aria-roledescription="Assets"
 >
-  <div class="container mx-auto rounded-lg bg-neutral-800 p-4">
+  <div class="container mx-auto rounded-lg bg-neutral-800 p-4 shadow-lg">
     <div class="mb-4 flex justify-center gap-4">
       {#each categories as cat}
         {@const CategoryIcon = cat.icon}
@@ -75,6 +76,7 @@
         <div
           class="flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 p-2 text-center text-xs"
           use:tooltip={asset.name}
+          use:draggable={asset}
         >
           <p>{asset.name}</p>
         </div>

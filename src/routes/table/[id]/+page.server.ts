@@ -11,12 +11,12 @@ const savesDir = path.join(TTM_HOME, 'saves')
 type CodexJson = {
   name: string
   icon: string
-  shortname: string
+  short_name: string
   version: string
 }
 
 // TODO: Add support for *.zip codexes
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async ({ locals, params, url }) => {
   // TODO: Encrypt the dir name as uuid
   // TODO: Check if dir exists
   const tablePath = path.join(savesDir, params.id)
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
       return {
         name: codex.name || dirname,
-        code: `${codex.shortname || dirname}@${codex.version || 0}`,
+        code: `${codex.short_name || dirname}@${codex.version || 0}`,
         relativepath: dirname,
         icon: codex.icon,
       } as Codex
@@ -65,6 +65,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         relativepath: file,
         mimetype: resolveAssetType(file),
         codex,
+        url: path.join(url.pathname, 'asset', codex.relativepath, file),
       })
     }
   }
