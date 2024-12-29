@@ -1,11 +1,6 @@
 <script lang="ts">
-  import {
-    Grid2x2,
-    Image,
-    FileJson,
-    Box,
-    Music,
-  } from 'lucide-svelte'
+  import { Grid2x2, Image, FileJson, Box, Music, Map } from 'lucide-svelte'
+  import tooltip from '$lib/actions/tooltip.js'
 
   let { assets }: { assets: Asset[] } = $props()
 
@@ -18,12 +13,17 @@
     },
     {
       filter: /^application\/json$/,
-      title: 'Data',
+      title: 'Objects',
       icon: Box,
     },
     {
+      filter: /^application\/vnd\.universal\.vtt$/,
+      title: 'Maps',
+      icon: Map,
+    },
+    {
       filter: /^image\//,
-      title: 'Image',
+      title: 'Images',
       icon: Image,
     },
     {
@@ -33,7 +33,7 @@
     },
     {
       filter: /^application\/schema\+json$/,
-      title: 'Template',
+      title: 'Templates',
       icon: FileJson,
     },
   ]
@@ -45,16 +45,21 @@
   )
 </script>
 
-<div class="fixed bottom-4 left-0 w-full px-4">
+<div
+  class="fixed bottom-4 left-0 w-full px-4"
+  role="region"
+  aria-roledescription="Assets"
+>
   <div class="container mx-auto rounded-lg bg-neutral-800 p-4">
     <div class="mb-4 flex justify-center gap-4">
       {#each categories as cat}
         {@const CategoryIcon = cat.icon}
         <button
-          class="flex items-center gap-2"
+          class="flex cursor-pointer items-center gap-2"
           class:text-violet-400={active === cat.filter}
           onclick={() => (active = cat.filter === active ? null : cat.filter)}
-          title={cat.title}
+          aria-label={cat.title}
+          use:tooltip={cat.title}
         >
           {#if cat.icon}
             <CategoryIcon />
@@ -68,8 +73,8 @@
     >
       {#each filtered as asset}
         <div
-          class="flex aspect-square h-16 w-16 cursor-pointer items-center justify-center break-all rounded-full bg-neutral-500 p-2 text-center text-xs"
-          title={asset.name}
+          class="flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 p-2 text-center text-xs"
+          use:tooltip={asset.name}
         >
           <p>{asset.name}</p>
         </div>

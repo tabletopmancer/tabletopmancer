@@ -10,14 +10,22 @@
 >
   {#if data.role === 'DM'}
     <ul class="mb-6 flex justify-end gap-4" role="navigation">
-      <li><UserPlus aria-label="Invite players" /></li>
-      <li><UserCog aria-label="Manage players" /></li>
+      <li>
+        <button class="cursor-pointer" aria-label="Invite players">
+          <UserPlus />
+        </button>
+      </li>
+      <li>
+        <button class="cursor-pointer" aria-label="Manage players">
+          <UserCog />
+        </button>
+      </li>
     </ul>
   {/if}
 
   <div aria-label="Maps and tokens renderer"></div>
 
-  <div aria-label="Assets">
+  {#if data.role === 'DM'}
     <AssetDrawer assets={data.assets} />
-  </div>
+  {/if}
 </main>

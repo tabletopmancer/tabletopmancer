@@ -89,5 +89,10 @@ function resolveAssetType(file: string): Asset['mimetype'] {
     return 'application/schema+json'
   }
 
+  // Universal VTT map format
+  if (['.dd2vtt', '.uvtt'].includes(path.extname(file))) {
+    return 'application/vnd.universal.vtt'
+  }
+
   return mime.getType(file) || 'text/plain'
 }
