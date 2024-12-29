@@ -1,10 +1,9 @@
-import type { Action } from "svelte/action"
 import Tooltip from '$lib/components/Tooltip.svelte'
-import { mount, unmount } from "svelte"
 import { createPopper, type Instance } from '@popperjs/core'
+import { mount, unmount } from 'svelte'
+import type { Action } from 'svelte/action'
 
 const tooltip: Action<HTMLElement, string | undefined> = (node, content) => {
-
   const container = document.createElement('div')
   let component: Record<string, any> | null = null
   let popper: Instance
@@ -21,15 +20,13 @@ const tooltip: Action<HTMLElement, string | undefined> = (node, content) => {
     component = mount(Tooltip, {
       target: container,
       props: {
-        content
-      }
+        content,
+      },
     })
 
     popper = createPopper(node, container, {
       placement: 'top',
-      modifiers: [
-        { name: 'offset', options: { offset: [4, 6] } }
-      ]
+      modifiers: [{ name: 'offset', options: { offset: [4, 6] } }],
     })
   }
 
@@ -60,7 +57,7 @@ const tooltip: Action<HTMLElement, string | undefined> = (node, content) => {
       node.removeEventListener('mouseleave', hide)
       node.removeEventListener('focusin', show)
       node.removeEventListener('focusout', hide)
-    }
+    },
   }
 }
 
