@@ -2,7 +2,7 @@
   import { onMount, setContext } from 'svelte'
   import { REGISTER_RENDER_KEY, type RenderFunction } from './canvas.js'
 
-  let { children } = $props()
+  let { children, width, height, ...rest } = $props()
 
   let canvasElement: HTMLCanvasElement
   let initialized = $state(false)
@@ -11,15 +11,15 @@
     setContext('canvas', canvasElement)
     setContext(REGISTER_RENDER_KEY, registerRenderFunction)
 
-    // TODO: Get these parameters from props
-    // TODO: On resize, update these
-    canvasElement.width = canvasElement.clientWidth
-    canvasElement.height = canvasElement.clientHeight
-
     initialized = true
     renderStart()
 
     return () => renderEnd()
+  })
+
+  $effect(() => {
+    canvasElement.width = width
+    canvasElement.height = height
   })
 
   let renderFunctions: RenderFunction[] = []
@@ -63,10 +63,7 @@
   }
 </script>
 
-<canvas
-  bind:this={canvasElement}
-  class="absolute left-0 top-0 h-screen w-screen"
->
+<canvas bind:this={canvasElement} {...rest}>
   {#if initialized}
     {@render children()}
   {/if}
