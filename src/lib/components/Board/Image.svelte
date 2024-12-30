@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { getContext } from 'svelte'
+  import { onRender } from './canvas.js'
 
-  let { src }: { src: string } = $props()
-
-  const ctx = getContext<CanvasRenderingContext2D>('2d')
+  let {
+    src,
+    position = [0, 0],
+    scale = 1,
+  }: { src: string; position: number[]; scale: number } = $props()
 
   // TODO: Add position + scale + rotation
 
@@ -12,9 +14,14 @@
   const image = new Image()
   image.src = src
 
-  // TODO: Load correct width and height
-  // TODO: Render with transformations
-  image.onload = () => {
-    ctx.drawImage(image, 0, 0, 100, 100)
-  }
+  onRender(({ context, next }) => {
+    if (image.complete) {
+      context.save()
+      // TODO: Load correct width and height
+      context.drawImage(image, position[0], position[1])
+      context.scale(scale, scale)
+      context.restore()
+    }
+    next()
+  })
 </script>

@@ -1,21 +1,21 @@
 <script lang="ts">
   import { getContext, onMount } from 'svelte'
-  import { Vector2 } from 'three'
+  import { onRender } from './canvas.js'
 
-  let { children } = $props()
+  let {
+    children,
+    position = $bindable([0, 0]),
+    scale = $bindable(1),
+  } = $props()
 
   // TODO: Add grab motion
-  let position = new Vector2()
 
-  let scale = 1.0
   const scaleFactor = 1 / 1_000
-
   const canvas = getContext<HTMLCanvasElement>('canvas')
-  const ctx = getContext<CanvasRenderingContext2D>('2d')
 
-  // TODO: Refresh the ctx on zoom
+  // TODO: Scale from the cursor position
   function onMouseWheel(event: WheelEvent) {
-    scale += event.deltaZ * scaleFactor
+    scale += event.deltaY * scaleFactor
   }
 
   onMount(() => {
@@ -24,6 +24,14 @@
     return () => {
       canvas.removeEventListener('wheel', onMouseWheel)
     }
+  })
+
+  onRender(({ context, next }) => {
+    context.save()
+    context.translate(position[0], position[1])
+    context.scale(scale, scale)
+    next()
+    context.restore()
   })
 </script>
 
