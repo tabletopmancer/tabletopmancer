@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount, setContext } from 'svelte'
+  import { onMount, setContext } from 'svelte'
   import { REGISTER_RENDER_KEY, type RenderFunction } from './canvas.js'
 
   let { children } = $props()
@@ -10,8 +10,16 @@
   onMount(() => {
     setContext('canvas', canvasElement)
     setContext(REGISTER_RENDER_KEY, registerRenderFunction)
+
+    // TODO: Get these parameters from props
+    // TODO: On resize, update these
+    canvasElement.width = canvasElement.clientWidth
+    canvasElement.height = canvasElement.clientHeight
+
     initialized = true
     renderStart()
+
+    return () => renderEnd()
   })
 
   let renderFunctions: RenderFunction[] = []
@@ -25,14 +33,13 @@
     }
   }
 
-  // TODO: Cancel animation frame on destroy
   let animationFrameId: number
 
   function renderStart() {
     const ctx = canvasElement.getContext('2d')!
 
     const loop = () => {
-      ctx.clearRect(0, 0, canvasElement?.width, canvasElement?.height)
+      ctx.clearRect(0, 0, canvasElement!.width, canvasElement!.height)
       ctx.save()
 
       // Use a counter-based `next` approach to ensure isolation
@@ -49,6 +56,10 @@
     }
 
     animationFrameId = requestAnimationFrame(loop)
+  }
+
+  function renderEnd() {
+    cancelAnimationFrame(animationFrameId)
   }
 </script>
 
