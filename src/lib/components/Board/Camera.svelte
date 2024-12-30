@@ -21,9 +21,23 @@
   const MOUSE_BUTTON_WHEEL = 1
   const MOUSE_BUTTON_RIGHT = 2
 
-  // TODO: Scale from the cursor position
   function onMouseWheel(event: WheelEvent) {
-    scale += event.deltaY * scaleFactor
+    event.preventDefault()
+
+    // Get the current cursor position relative to the canvas
+    const rect = canvas.getBoundingClientRect()
+    const cursorX = (event.clientX - rect.left - position[0]) / scale
+    const cursorY = (event.clientY - rect.top - position[1]) / scale
+
+    // Exponential scaling
+    const zoomFactor = Math.exp(-event.deltaY * scaleFactor)
+    const previousScale = scale
+    scale = Math.max(0.1, scale * zoomFactor)
+
+    position = [
+      position[0] + cursorX * (previousScale - scale),
+      position[1] + cursorY * (previousScale - scale),
+    ]
   }
 
   function onMouseDown(event: MouseEvent) {
