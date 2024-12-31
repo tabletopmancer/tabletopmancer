@@ -1,5 +1,5 @@
 import { TTM_HOME } from '$env/static/private'
-import { text } from '@sveltejs/kit'
+import mime from '$lib/mime.js'
 import fs from 'fs/promises'
 import path from 'path'
 import type { RequestHandler } from './$types'
@@ -10,8 +10,13 @@ export const GET: RequestHandler = async ({ params, request }) => {
   // TODO: Check if the table is pulbic if role is not DM
   // TODO: Check for permissions on certain data
   const file = path.join(savesDir, params.id, 'codexes', params.path)
-  const data = await fs.readFile(file, 'utf8')
+  const data = await fs.readFile(file)
 
-  // TODO: Handle different mime types
-  return text(data)
+  return new Response(data, {
+    status: 200,
+    headers: {
+      'Content-Type': mime.getType(file) || 'text/plain',
+      'Content-Length': data.length.toString(),
+    },
+  })
 }

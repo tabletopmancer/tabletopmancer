@@ -1,7 +1,7 @@
 import { TTM_HOME } from '$env/static/private'
+import mime from '$lib/mime.js'
 import * as cc from 'change-case'
 import { glob } from 'glob'
-import mime from 'mime'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { PageServerLoad } from './$types'
@@ -59,20 +59,26 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     for (let i = 0, l = matches.length; i < l; i++) {
       const file = matches[i]
 
-      assets.push({
+      const asset = {
         name: resolveAssetName(file),
         thumbnail: '',
         relativepath: file,
         mimetype: resolveAssetType(file),
         codex,
         url: path.join(url.pathname, 'asset', codex.relativepath, file),
-      })
+      }
+
+      if (asset.mimetype.match(/^image\//)) {
+        asset.thumbnail = asset.url
+      }
+
+      assets.push(asset)
     }
   }
 
   return {
     role: locals.role,
-    assets,
+    assets: assets.sort((a, b) => a.name.localeCompare(b.name)),
   }
 }
 
@@ -88,11 +94,6 @@ function resolveAssetType(file: string): Asset['mimetype'] {
   // TODO: Check the content of the json file to detect schemas
   if (path.extname(file) === '.json' && file.includes('schema')) {
     return 'application/schema+json'
-  }
-
-  // Universal VTT map format
-  if (['.dd2vtt', '.uvtt'].includes(path.extname(file))) {
-    return 'application/vnd.universal.vtt'
   }
 
   return mime.getType(file) || 'text/plain'

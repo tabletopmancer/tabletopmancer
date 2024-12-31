@@ -11,8 +11,8 @@
     src: string
     width?: number
     height?: number
-    position: number[]
-    scale: number
+    position?: number[]
+    scale?: number
   } = $props()
 
   // TODO: Add position + scale + rotation
