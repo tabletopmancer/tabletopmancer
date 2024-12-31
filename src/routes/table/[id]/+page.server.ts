@@ -40,7 +40,9 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
         name: codex.name || dirname,
         code: `${codex.short_name || dirname}@${codex.version || 0}`,
         relativepath: dirname,
-        icon: codex.icon ? path.join(url.pathname, 'asset', dirname, codex.icon) : undefined,
+        icon: codex.icon
+          ? path.join(url.pathname, 'asset', dirname, codex.icon)
+          : undefined,
       } as Codex
     })
   )

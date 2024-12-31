@@ -74,7 +74,7 @@
     >
       {#each filtered as asset}
         <div
-          class="relative flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 text-center"
+          class="relative flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 text-center *:pointer-events-none"
           use:tooltip={asset.name}
           use:draggable={asset}
         >
