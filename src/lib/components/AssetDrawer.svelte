@@ -74,7 +74,7 @@
     >
       {#each filtered as asset}
         <div
-          class="flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 text-center"
+          class="relative flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 text-center"
           use:tooltip={asset.name}
           use:draggable={asset}
         >
@@ -86,6 +86,13 @@
             />
           {:else}
             <p class="p-2 text-xs">{asset.name}</p>
+          {/if}
+          {#if asset.codex.icon}
+            <img
+              class="absolute bottom-[-10px] right-[-10px] h-12 w-12"
+              src={asset.codex.icon}
+              alt=""
+            />
           {/if}
         </div>
       {/each}

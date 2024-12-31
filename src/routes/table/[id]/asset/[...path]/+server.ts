@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types'
 
 const savesDir = path.join(TTM_HOME, 'saves')
 
-export const GET: RequestHandler = async ({ params, request }) => {
+export const GET: RequestHandler = async ({ params }) => {
   // TODO: Check if the table is pulbic if role is not DM
   // TODO: Check for permissions on certain data
   const file = path.join(savesDir, params.id, 'codexes', params.path)
