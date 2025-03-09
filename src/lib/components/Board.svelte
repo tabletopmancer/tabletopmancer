@@ -1,68 +1,135 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { dropzone } from '$lib/actions/drag-n-drop.js'
-  import Canvas from './Board/Canvas.svelte'
-  import Camera from './Board/Camera.svelte'
-  import AssetComponent from './Board/Asset.svelte'
+  import { setContext, type Snippet } from 'svelte'
+  import { pan, type GestureCustomEvent } from 'svelte-gestures'
+  import { MOUSE_BUTTON_LEFT } from '$lib/constants.js'
 
-  type View = {
-    position?: Point
-    map?: string
+  let {
+    width,
+    height,
+    children,
+  }: {
+    width?: number
+    height?: number
+    children?: Snippet
+  } = $props()
+
+  let position = $state([0, 0])
+  let scale = $state(1)
+  let rotation = $state(0)
+
+  // Grab motion
+  let grabbing = $state(false)
+  let grabOffset: number[] = []
+
+  const scaleFactor = 1 / 1_000
+
+  function onMouseWheel(event: WheelEvent) {
+    event.preventDefault()
+
+    // Get the current cursor position relative to the wrapper
+    const rect = boardContainer.getBoundingClientRect()
+    const cursorX = (event.clientX - rect.left - position[0]) / scale
+    const cursorY = (event.clientY - rect.top - position[1]) / scale
+
+    // Exponential scaling
+    const zoomFactor = Math.exp(-event.deltaY * scaleFactor)
+    const previousScale = scale
+    scale = Math.max(0.1, scale * zoomFactor)
+
+    position = [
+      position[0] + cursorX * (previousScale - scale),
+      position[1] + cursorY * (previousScale - scale),
+    ]
   }
 
-  type Point = {
-    x: number
-    y: number
+  // Disable context menu
+  function onContextMenu(event: MouseEvent) {
+    event.preventDefault()
   }
 
-  // TODO: Set the current map in a store so it can be shown in the assets drawer
-  let view = $state<View>({})
+  let boardContainer: HTMLDivElement
 
-  // List of the loaded assets
-  // TODO: Implement a mechanism to remove from the table
-  let assets = $state<Asset[]>([])
-
-  function onDrop(asset: Asset) {
-    if (asset.mimetype === 'application/vnd.universal.vtt') {
-      assets.push(asset)
+  class Transform {
+    get position() {
+      return position
     }
 
-    if (asset.mimetype === 'application/json') {
-      // TODO: Create token if character/monster sheet
-    }
-
-    if (asset.mimetype === 'application/schema+json') {
-      // TODO: Create a new instance of the template (opens a popup?)
+    get scale() {
+      return scale
     }
   }
 
-  // Set the canvas dimensions to fit the screen
-  let canvasWidth = $state(0)
-  let canvasHeight = $state(0)
+  setContext('globalTransform', new Transform())
 
-  function onWindowResize() {
-    canvasWidth = window.innerWidth
-    canvasHeight = window.innerHeight
+  function onPanDown(event: GestureCustomEvent) {
+    const { event: srcEvent } = event.detail
+    srcEvent.preventDefault()
+
+    if (srcEvent.button === MOUSE_BUTTON_LEFT) {
+      grabbing = true
+      grabOffset = [event.detail.x - position[0], event.detail.y - position[1]]
+    }
+
+    return false
   }
 
-  onMount(() => {
-    onWindowResize()
-  })
+  function onPanMove(event: GestureCustomEvent) {
+    if (grabbing) {
+      position = [
+        event.detail.x - grabOffset[0],
+        event.detail.y - grabOffset[1],
+      ]
+    }
+  }
+
+  function onPanUp(event: GestureCustomEvent) {
+    const { event: srcEvent } = event.detail
+
+    if (srcEvent.button === MOUSE_BUTTON_LEFT) {
+      grabbing = false
+    }
+  }
 </script>
 
-<svelte:window onresize={onWindowResize} />
-
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
+  bind:this={boardContainer}
+  class="board"
   role="region"
-  aria-roledescription="Game board"
-  class="absolute left-0 top-0"
-  use:dropzone={onDrop}
+  style:width
+  style:height
+  oncontextmenu={onContextMenu}
+  onwheel={onMouseWheel}
+  use:pan={() => ({})}
+  onpandown={onPanDown}
+  onpanmove={onPanMove}
+  onpanup={onPanUp}
+  style:cursor={grabbing ? 'move' : undefined}
 >
-  <Canvas width={canvasWidth} height={canvasHeight}>
-    <Camera>
-      {#each assets as asset}
-        <AssetComponent data={asset} />
-      {/each}
-    </Camera>
-  </Canvas>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="camera"
+    style:scale
+    style:translate={`${position[0]}px ${position[1]}px`}
+    style:rotate={`${rotation}deg`}
+  >
+    {@render children?.()}
+  </div>
 </div>
+
+<style>
+  .board {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .camera {
+    transform-origin: 0 0;
+    will-change: scale, translate, rotate;
+    width: 100%;
+    height: 100%;
+  }
+</style>
