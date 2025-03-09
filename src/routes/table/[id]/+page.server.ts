@@ -1,8 +1,8 @@
 import { TTM_HOME } from '$env/static/private'
 import mime from '$lib/mime.js'
 import * as cc from 'change-case'
+import fs from 'fs-extra'
 import { glob } from 'glob'
-import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { PageServerLoad } from './$types'
 
@@ -31,9 +31,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 
   const codexes = await Promise.all(
     g1.map(async (file: string) => {
-      const codex: Partial<CodexJson> = JSON.parse(
-        await fs.readFile(file, 'utf8')
-      )
+      const codex: Partial<CodexJson> = await fs.readJSON(file, 'utf8')
       const dirname = path.dirname(path.relative(codexesDir, file))
 
       return {
