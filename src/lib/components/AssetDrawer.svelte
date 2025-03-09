@@ -70,11 +70,11 @@
     </div>
 
     <div
-      class="flex min-h-20 w-full items-center gap-4 overflow-x-scroll py-1 scrollbar-none"
+      class="scrollbar-none flex min-h-20 w-full items-center gap-4 overflow-x-scroll py-1"
     >
       {#each filtered as asset}
         <div
-          class="relative flex aspect-square h-16 w-16 cursor-pointer select-none items-center justify-center break-all rounded-full bg-neutral-500 text-center *:pointer-events-none"
+          class="relative flex aspect-square h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-neutral-500 text-center break-all select-none *:pointer-events-none"
           use:tooltip={asset.name}
           use:draggable={asset}
         >
@@ -89,7 +89,7 @@
           {/if}
           {#if asset.codex.icon}
             <img
-              class="absolute bottom-[-10px] right-[-10px] h-12 w-12"
+              class="absolute right-[-10px] bottom-[-10px] h-12 w-12"
               src={asset.codex.icon}
               alt=""
             />
