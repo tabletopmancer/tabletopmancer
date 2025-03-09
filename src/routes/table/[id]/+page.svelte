@@ -9,6 +9,8 @@
 <main
   class="h-screen w-screen bg-gradient-to-br from-blue-800 via-violet-900 to-gray-800 text-gray-100"
 >
+  <Table />
+
   {#if data.role === 'DM'}
     <ul
       class="fixed top-0 mb-6 flex w-full justify-end gap-4 p-4"
@@ -31,8 +33,6 @@
       </li>
     </ul>
   {/if}
-
-  <Table />
 
   {#if data.role === 'DM'}
     <AssetDrawer assets={data.assets} />

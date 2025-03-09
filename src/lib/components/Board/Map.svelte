@@ -8,7 +8,6 @@
   onMount(async () => {
     const req = await fetch(src)
     mapData = await req.json()
-    console.log(mapData)
   })
 </script>
 
