@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "src/routes/**/{+page,+page.server,+layout,+layout.server,+server}.{ts,js,svelte}",
+    "src/hooks.server.{ts,js}",
+    "src/lib/index.{ts,js}"
+  ],
+  "duplicates": {
+    "minOccurrences": 3
+  },
+  "rules": {}
+}

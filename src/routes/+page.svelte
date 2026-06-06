@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Plus, Settings } from '@lucide/svelte'
-  let { data } = $props()
+  import { Plus, Settings } from "@lucide/svelte";
+  let { data } = $props();
 </script>
 
 <svelte:head>
@@ -17,10 +17,7 @@
 
   <ul class="grid grid-cols-1 gap-4">
     {#each data.tables as table}
-      <a
-        class="space-y-2 rounded bg-neutral-50 p-4 text-blue-800"
-        href="/table/{table.id}"
-      >
+      <a class="space-y-2 rounded bg-neutral-50 p-4 text-blue-800" href="/table/{table.id}">
         <h2 class="text-lg">{table.name}</h2>
         <p class="text-right text-xs">{table.lastPlayed}</p>
       </a>

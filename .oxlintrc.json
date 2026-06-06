@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    // Svelte template variables are invisible to the linter
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    // `export {}` is the standard TypeScript ambient module pattern
+    "unicorn/require-module-specifiers": "off"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true
+  },
+  "ignorePatterns": [
+    ".svelte-kit/**",
+    "build/**",
+    // SvelteKit scaffold placeholder — comment-only file by convention
+    "src/lib/index.ts"
+  ],
+  "overrides": [
+    {
+      "files": ["*.svelte"],
+      "rules": {
+        // `bind:this` assignments in templates are invisible to the linter
+        "no-unassigned-vars": "off"
+      }
+    }
+  ]
+}
