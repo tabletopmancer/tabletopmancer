@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setContext, type Snippet } from 'svelte'
-  import { pan, type GestureCustomEvent } from 'svelte-gestures'
+  import { usePan, type GestureCustomEvent } from 'svelte-gestures'
   import { MOUSE_BUTTON_LEFT } from '$lib/constants.js'
 
   let {
@@ -89,6 +89,12 @@
       grabbing = false
     }
   }
+
+  const panProps = usePan(() => {}, () => ({}), {
+    onpandown: onPanDown,
+    onpanmove: onPanMove,
+    onpanup: onPanUp,
+  })
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -100,10 +106,7 @@
   style:height
   oncontextmenu={onContextMenu}
   onwheel={onMouseWheel}
-  use:pan={() => ({})}
-  onpandown={onPanDown}
-  onpanmove={onPanMove}
-  onpanup={onPanUp}
+  {...panProps}
   style:cursor={grabbing ? 'move' : undefined}
 >
   <!-- svelte-ignore a11y_no_static_element_interactions -->

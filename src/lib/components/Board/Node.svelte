@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getContext, type Snippet } from 'svelte'
-  import { pan, type GestureCustomEvent } from 'svelte-gestures'
+  import { usePan, type GestureCustomEvent } from 'svelte-gestures'
   import { MOUSE_BUTTON_LEFT } from '$lib/constants.js'
 
   let {
@@ -74,15 +74,18 @@
       dragging = false
     }
   }
+
+  const panProps = usePan(() => {}, () => ({}), {
+    onpandown: onPanDown,
+    onpanmove: onPanMove,
+    onpanup: onPanUp,
+  })
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
   role="region"
-  use:pan={() => ({})}
-  onpandown={onPanDown}
-  onpanmove={onPanMove}
-  onpanup={onPanUp}
+  {...panProps}
   style:transform-origin={origin.join(' ')}
   style:scale
   style:translate={`${position[0]}px ${position[1]}px`}

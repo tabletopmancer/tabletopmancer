@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Grid2x2, Image, FileJson, Box, Music, Map } from 'lucide-svelte'
+  import { Grid2x2, Image, FileJson, Box, Music, Map } from '@lucide/svelte'
   import tooltip from '$lib/actions/tooltip.js'
   import { draggable } from '$lib/actions/drag-n-drop.js'
 
@@ -62,9 +62,7 @@
           aria-label={cat.title}
           use:tooltip={cat.title}
         >
-          {#if cat.icon}
-            <CategoryIcon />
-          {/if}
+          <CategoryIcon />
         </button>
       {/each}
     </div>

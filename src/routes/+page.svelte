@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, Settings } from 'lucide-svelte'
+  import { Plus, Settings } from '@lucide/svelte'
   let { data } = $props()
 </script>
 

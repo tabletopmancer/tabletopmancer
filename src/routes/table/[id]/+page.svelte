@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Rss, UserCog, UserPlus } from 'lucide-svelte'
+  import { Rss, UserCog, UserPlus } from '@lucide/svelte'
   import AssetDrawer from '$lib/components/AssetDrawer.svelte'
   import Table from '$lib/components/Table.svelte'
 
