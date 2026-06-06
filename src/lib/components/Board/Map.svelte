@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount } from "svelte";
 
-  let { src }: { src: string } = $props()
+  let { src }: { src: string } = $props();
 
-  let mapData = $state<{ image: string } | null>(null)
+  let mapData = $state<{ image: string } | null>(null);
 
   onMount(async () => {
-    const req = await fetch(src)
-    mapData = await req.json()
-  })
+    const req = await fetch(src);
+    mapData = await req.json();
+  });
 </script>
 
 {#if mapData}

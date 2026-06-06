@@ -4,7 +4,7 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      role: 'DM' | 'PLAYER'
+      role: "DM" | "PLAYER";
     }
     // interface PageData {}
     // interface PageState {}
@@ -12,20 +12,20 @@ declare global {
   }
 
   type Codex = {
-    relativepath: string
-    name: string
-    code: string
-    icon?: string
-  }
+    relativepath: string;
+    name: string;
+    code: string;
+    icon?: string;
+  };
 
   type Asset = {
-    relativepath: string
-    name: string
-    mimetype: string
-    thumbnail: string
-    codex: Codex
-    url: string
-  }
+    relativepath: string;
+    name: string;
+    mimetype: string;
+    thumbnail: string;
+    codex: Codex;
+    url: string;
+  };
 }
 
-export {}
+export {};

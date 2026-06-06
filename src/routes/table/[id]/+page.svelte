@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Rss, UserCog, UserPlus } from 'lucide-svelte'
-  import AssetDrawer from '$lib/components/AssetDrawer.svelte'
-  import Table from '$lib/components/Table.svelte'
+  import { Rss, UserCog, UserPlus } from "@lucide/svelte";
+  import AssetDrawer from "$lib/components/AssetDrawer.svelte";
+  import Table from "$lib/components/Table.svelte";
 
-  let { data } = $props()
+  let { data } = $props();
 </script>
 
 <main
@@ -11,11 +11,8 @@
 >
   <Table />
 
-  {#if data.role === 'DM'}
-    <ul
-      class="fixed top-0 mb-6 flex w-full justify-end gap-4 p-4"
-      role="navigation"
-    >
+  {#if data.role === "DM"}
+    <ul class="fixed top-0 mb-6 flex w-full justify-end gap-4 p-4" role="navigation">
       <li>
         <button class="cursor-pointer" aria-label="Open the session">
           <Rss />
@@ -34,7 +31,7 @@
     </ul>
   {/if}
 
-  {#if data.role === 'DM'}
+  {#if data.role === "DM"}
     <AssetDrawer assets={data.assets} />
   {/if}
 </main>
