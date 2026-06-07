@@ -2,13 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Universal VTT Map",
   "type": "object",
-  "required": [
-    "format",
-    "resolution",
-    "environment",
-    "lights",
-    "image"
-  ],
+  "required": ["format", "resolution", "environment", "lights", "image"],
   "properties": {
     "format": {
       "type": "number",
@@ -16,17 +10,11 @@
     },
     "resolution": {
       "type": "object",
-      "required": [
-        "map_size",
-        "pixels_per_grid"
-      ],
+      "required": ["map_size", "pixels_per_grid"],
       "properties": {
         "map_origin": {
           "type": "object",
-          "required": [
-            "x",
-            "y"
-          ],
+          "required": ["x", "y"],
           "properties": {
             "x": {
               "type": "number",
@@ -40,10 +28,7 @@
         },
         "map_size": {
           "type": "object",
-          "required": [
-            "x",
-            "y"
-          ],
+          "required": ["x", "y"],
           "properties": {
             "x": {
               "type": "number"
@@ -64,10 +49,7 @@
         "type": "array",
         "items": {
           "type": "object",
-          "required": [
-            "x",
-            "y"
-          ],
+          "required": ["x", "y"],
           "properties": {
             "x": {
               "type": "number"
@@ -85,10 +67,7 @@
         "type": "array",
         "items": {
           "type": "object",
-          "required": [
-            "x",
-            "y"
-          ],
+          "required": ["x", "y"],
           "properties": {
             "x": {
               "type": "number"
@@ -104,20 +83,11 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "position",
-          "bounds",
-          "rotation",
-          "closed",
-          "freestanding"
-        ],
+        "required": ["position", "bounds", "rotation", "closed", "freestanding"],
         "properties": {
           "position": {
             "type": "object",
-            "required": [
-              "x",
-              "y"
-            ],
+            "required": ["x", "y"],
             "properties": {
               "x": {
                 "type": "number"
@@ -131,10 +101,7 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": [
-                "x",
-                "y"
-              ],
+              "required": ["x", "y"],
               "properties": {
                 "x": {
                   "type": "number"
@@ -159,10 +126,7 @@
     },
     "environment": {
       "type": "object",
-      "required": [
-        "baked_lighting",
-        "ambient_light"
-      ],
+      "required": ["baked_lighting", "ambient_light"],
       "properties": {
         "baked_lighting": {
           "type": "boolean",
@@ -179,20 +143,11 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "position",
-          "range",
-          "intensity",
-          "color",
-          "shadows"
-        ],
+        "required": ["position", "range", "intensity", "color", "shadows"],
         "properties": {
           "position": {
             "type": "object",
-            "required": [
-              "x",
-              "y"
-            ],
+            "required": ["x", "y"],
             "properties": {
               "x": {
                 "type": "number"

@@ -3,9 +3,7 @@
   "title": "Codex",
   "type": "object",
   "description": "A codex is a game system or campaign data.",
-  "required": [
-    "short_name"
-  ],
+  "required": ["short_name"],
   "properties": {
     "name": {
       "type": "string",
