@@ -29,19 +29,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     follow: true,
   });
 
-  const codexes = await Promise.all(
-    g1.map(async (file: string) => {
-      const codex: Partial<CodexJson> = await fs.readJSON(file, "utf8");
-      const dirname = path.dirname(path.relative(codexesDir, file));
-
-      return {
-        name: codex.name || dirname,
-        code: `${codex.short_name || dirname}@${codex.version || 0}`,
-        relativepath: dirname,
-        icon: codex.icon ? path.join(url.pathname, "asset", dirname, codex.icon) : undefined,
-      } as Codex;
-    }),
-  );
+  const codexes = await Promise.all(g1.map((file) => loadCodex(file, codexesDir, url.pathname)));
 
   const assets: Asset[] = [];
 
@@ -79,6 +67,17 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     assets: assets.toSorted((a, b) => a.name.localeCompare(b.name)),
   };
 };
+
+async function loadCodex(file: string, codexesDir: string, urlPathname: string): Promise<Codex> {
+  const codex: Partial<CodexJson> = await fs.readJSON(file, "utf8");
+  const dirname = path.dirname(path.relative(codexesDir, file));
+  return {
+    name: codex.name ?? dirname,
+    code: `${codex.short_name ?? dirname}@${codex.version ?? 0}`,
+    relativepath: dirname,
+    icon: codex.icon ? path.join(urlPathname, "asset", dirname, codex.icon) : undefined,
+  } as Codex;
+}
 
 // TODO: For json data, get the name from the schema
 function resolveAssetName(file: string): Asset["name"] {
