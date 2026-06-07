@@ -69,13 +69,14 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 };
 
 async function loadCodex(file: string, codexesDir: string, urlPathname: string): Promise<Codex> {
-  const codex: Partial<CodexJson> = await fs.readJSON(file, "utf8");
+  const raw: Partial<CodexJson> = await fs.readJSON(file, "utf8");
   const dirname = path.dirname(path.relative(codexesDir, file));
+  const { name = dirname, short_name = dirname, version = "0", icon } = raw;
   return {
-    name: codex.name ?? dirname,
-    code: `${codex.short_name ?? dirname}@${codex.version ?? 0}`,
+    name,
+    code: `${short_name}@${version}`,
     relativepath: dirname,
-    icon: codex.icon ? path.join(urlPathname, "asset", dirname, codex.icon) : undefined,
+    icon: icon ? path.join(urlPathname, "asset", dirname, icon) : undefined,
   } as Codex;
 }
 
