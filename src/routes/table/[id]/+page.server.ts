@@ -1,4 +1,4 @@
-import { TTM_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$env/static/private";
 import mime from "$lib/mime.js";
 import * as cc from "change-case";
 import fs from "fs-extra";
@@ -6,7 +6,7 @@ import { glob } from "glob";
 import path from "node:path";
 import type { PageServerLoad } from "./$types";
 
-const savesDir = path.join(TTM_HOME, "saves");
+const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 type CodexJson = {
   name: string;

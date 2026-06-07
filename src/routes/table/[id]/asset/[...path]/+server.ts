@@ -1,10 +1,10 @@
-import { TTM_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$env/static/private";
 import mime from "$lib/mime.js";
 import fs from "fs/promises";
 import path from "path";
 import type { RequestHandler } from "./$types";
 
-const savesDir = path.join(TTM_HOME, "saves");
+const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 export const GET: RequestHandler = async ({ params }) => {
   // TODO: Check if the table is pulbic if role is not DM

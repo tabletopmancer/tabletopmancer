@@ -1,9 +1,9 @@
-import { TTM_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$env/static/private";
 import fs from "fs-extra";
 import path from "node:path";
 import type { PageServerLoad } from "./$types";
 
-const savesDir = path.join(TTM_HOME, "saves");
+const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 export const load: PageServerLoad = async () => {
   // Loads the saves from the local dir
