@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal VTT Map",
+  "type": "object",
+  "required": [
+    "format",
+    "resolution",
+    "environment",
+    "lights",
+    "image"
+  ],
+  "properties": {
+    "format": {
+      "type": "number",
+      "description": "The format version."
+    },
+    "resolution": {
+      "type": "object",
+      "required": [
+        "map_size",
+        "pixels_per_grid"
+      ],
+      "properties": {
+        "map_origin": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number",
+              "default": 0
+            },
+            "y": {
+              "type": "number",
+              "default": 0
+            }
+          }
+        },
+        "map_size": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        },
+        "pixels_per_grid": {
+          "type": "number"
+        }
+      }
+    },
+    "line_of_sight": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "objects_line_of_sight": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "portals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "position",
+          "bounds",
+          "rotation",
+          "closed",
+          "freestanding"
+        ],
+        "properties": {
+          "position": {
+            "type": "object",
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            }
+          },
+          "bounds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "rotation": {
+            "type": "number"
+          },
+          "closed": {
+            "type": "boolean"
+          },
+          "freestanding": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "baked_lighting",
+        "ambient_light"
+      ],
+      "properties": {
+        "baked_lighting": {
+          "type": "boolean",
+          "description": "Is lighting baked into this image?"
+        },
+        "ambient_light": {
+          "type": "string",
+          "description": "Ambient lighting color to apply over the entire scene.",
+          "pattern": "^[0-9a-fA-F]{8}$"
+        }
+      }
+    },
+    "lights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "position",
+          "range",
+          "intensity",
+          "color",
+          "shadows"
+        ],
+        "properties": {
+          "position": {
+            "type": "object",
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            }
+          },
+          "range": {
+            "type": "number"
+          },
+          "intensity": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}$"
+          },
+          "shadows": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "image": {
+      "type": "string",
+      "description": "Base64 encoded of the PNG or WEBP image."
+    }
+  }
+}

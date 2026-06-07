@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Codex",
+  "type": "object",
+  "description": "A codex is a game system or campaign data.",
+  "required": [
+    "short_name"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The full name of the codex."
+    },
+    "short_name": {
+      "type": "string",
+      "description": "A short code for the codex, must be unique.",
+      "pattern": "[a-zA-Z_-]+"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon filename of the codex, relative to this file."
+    },
+    "version": {
+      "type": "string",
+      "description": "The version of the codex."
+    },
+    "description": {
+      "type": "string",
+      "description": "The description of the codex."
+    }
+  }
+}
