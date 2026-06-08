@@ -25,10 +25,13 @@ function onDragOver(event: DragEvent) {
   return false;
 }
 
-export const dropzone: Action<HTMLElement, (data: any) => void> = (node, handler) => {
+export const dropzone: Action<HTMLElement, (data: any, event: DragEvent) => void> = (
+  node,
+  handler,
+) => {
   function onDrop(event: DragEvent) {
     const data = JSON.parse(event.dataTransfer!.getData("application/json"));
-    handler?.(data);
+    handler?.(data, event);
   }
 
   node.addEventListener("drop", onDrop);

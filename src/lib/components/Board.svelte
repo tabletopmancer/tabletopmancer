@@ -61,6 +61,14 @@
 
   setContext("globalTransform", new Transform());
 
+  export function screenToBoard(clientX: number, clientY: number): Position {
+    const rect = boardContainer.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - position[0]) / scale,
+      y: (clientY - rect.top - position[1]) / scale,
+    };
+  }
+
   function onPanDown(event: GestureCustomEvent) {
     const { event: srcEvent } = event.detail;
     srcEvent.preventDefault();
