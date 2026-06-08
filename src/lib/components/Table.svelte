@@ -44,6 +44,21 @@
 
   const approvedPlayers = $derived(boardState.players.filter((p) => p.status === "approved"));
 
+  async function resolveTokenData(asset: Asset): Promise<{ name: string; imageUrl?: string }> {
+    let name = asset.name;
+    let imageUrl: string | undefined;
+    try {
+      const data = await fetch(asset.url).then((r) => r.json());
+      if (data.name) name = data.name;
+      if (data.image) {
+        imageUrl = new URL(data.image, new URL(asset.url, window.location.href)).pathname;
+      }
+    } catch {
+      // use asset name as fallback
+    }
+    return { name, imageUrl };
+  }
+
   async function onDrop(asset: Asset, event: DragEvent) {
     if (asset.mimetype === "application/vnd.universal.vtt") {
       assets.push(asset);
@@ -52,20 +67,7 @@
 
     if (asset.mimetype === "application/json") {
       const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
-
-      let name = asset.name;
-      let imageUrl: string | undefined;
-
-      try {
-        const data = await fetch(asset.url).then((r) => r.json());
-        if (data.name) name = data.name;
-        if (data.image) {
-          imageUrl = new URL(data.image, new URL(asset.url, window.location.href)).pathname;
-        }
-      } catch {
-        // use asset name as fallback
-      }
-
+      const { name, imageUrl } = await resolveTokenData(asset);
       await fetch(`/table/${tableId}/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
