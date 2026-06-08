@@ -1,7 +1,10 @@
+import { applyDelta } from "$lib/apply-delta.js";
 import { TABLETOPMANCER_HOME } from "$env/static/private";
 import fs from "fs-extra";
 import { EventEmitter } from "node:events";
 import path from "node:path";
+
+export { applyDelta };
 
 const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
@@ -57,69 +60,9 @@ export async function getState(tableId: string): Promise<BoardState> {
   return loadState(tableId);
 }
 
-export async function applyDelta(tableId: string, delta: DeltaEvent): Promise<void> {
+export async function dispatchDelta(tableId: string, delta: DeltaEvent): Promise<void> {
   const state = await loadState(tableId);
-  mutateBoardState(state, delta);
+  applyDelta(state, delta);
   await persistState(tableId);
   getTableEmitter(tableId).emit("delta", delta);
-}
-
-function mutateBoardState(state: BoardState, delta: DeltaEvent): void {
-  switch (delta.type) {
-    case "token:placed":
-      state.tokens.push(delta.token);
-      break;
-    case "token:moved": {
-      const t = state.tokens.find((t) => t.id === delta.id);
-      if (t) t.position = delta.position;
-      break;
-    }
-    case "token:removed":
-      state.tokens = state.tokens.filter((t) => t.id !== delta.id);
-      break;
-    case "token:owner-assigned": {
-      const t = state.tokens.find((t) => t.id === delta.id);
-      if (t) t.owner = delta.owner;
-      break;
-    }
-    case "map:placed":
-      state.maps.push(delta.map);
-      break;
-    case "map:removed":
-      state.maps = state.maps.filter((m) => m.id !== delta.id);
-      break;
-    case "fog:updated": {
-      const m = state.maps.find((m) => m.id === delta.mapId);
-      if (m) {
-        m.fog ??= {};
-        for (const cell of delta.patch.cells) {
-          m.fog[`${cell.x},${cell.y}`] = cell.visible;
-        }
-      }
-      break;
-    }
-    case "dice:rolled":
-      state.rollHistory.push(delta.roll);
-      break;
-    case "ping":
-      // transient — not persisted
-      break;
-    case "initiative:updated":
-      state.initiative = delta.tracker;
-      break;
-    case "player:joined":
-      if (!state.players.find((p) => p.id === delta.player.id)) {
-        state.players.push(delta.player);
-      }
-      break;
-    case "player:approved": {
-      const idx = state.players.findIndex((p) => p.id === delta.player.id);
-      if (idx >= 0) state.players[idx] = delta.player;
-      else state.players.push(delta.player);
-      break;
-    }
-    case "player:revoked":
-      state.players = state.players.filter((p) => p.id !== delta.playerId);
-      break;
-  }
 }
