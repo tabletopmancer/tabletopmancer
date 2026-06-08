@@ -12,8 +12,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 
   if ("position" in body) {
     const canMove =
-      locals.role === "DM" ||
-      (locals.player !== null && token.owner === locals.player.id);
+      locals.role === "DM" || (locals.player !== null && token.owner === locals.player.id);
     if (!canMove) error(403, "Cannot move this token");
     await dispatchDelta(tableId, { type: "token:moved", id: tokenId, position: body.position });
     return json({ ok: true });

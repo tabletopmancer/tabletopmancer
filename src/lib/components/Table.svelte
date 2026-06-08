@@ -29,7 +29,9 @@
   let view = $state<View>({});
   let assets = $state<Asset[]>([]);
 
-  let board = $state<{ screenToBoard: (clientX: number, clientY: number) => Position } | null>(null);
+  let board = $state<{ screenToBoard: (clientX: number, clientY: number) => Position } | null>(
+    null,
+  );
 
   type ContextMenu = {
     token: Token;
@@ -40,9 +42,7 @@
 
   let contextMenu = $state<ContextMenu | null>(null);
 
-  const approvedPlayers = $derived(
-    boardState.players.filter((p) => p.status === "approved"),
-  );
+  const approvedPlayers = $derived(boardState.players.filter((p) => p.status === "approved"));
 
   async function onDrop(asset: Asset, event: DragEvent) {
     if (asset.mimetype === "application/vnd.universal.vtt") {
@@ -103,13 +103,7 @@
       <AssetNode data={asset} />
     {/each}
     {#each boardState.tokens as token (token.id)}
-      <TokenNode
-        {token}
-        {tableId}
-        {role}
-        {player}
-        onrightclick={handleTokenRightClick}
-      />
+      <TokenNode {token} {tableId} {role} {player} onrightclick={handleTokenRightClick} />
     {/each}
   </Board>
 </div>
@@ -124,19 +118,22 @@
     onkeydown={(e) => e.key === "Escape" && closeMenu()}
   ></div>
 
-  <div
-    class="context-menu"
-    style:left="{contextMenu.x}px"
-    style:top="{contextMenu.y}px"
-  >
+  <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
     <div
       class="context-item"
       role="button"
       tabindex="0"
-      onmouseenter={() => { if (contextMenu) contextMenu.showAssign = true; }}
-      onmouseleave={() => { if (contextMenu) contextMenu.showAssign = false; }}
-      onclick={() => { if (contextMenu) contextMenu.showAssign = !contextMenu.showAssign; }}
-      onkeydown={(e) => e.key === "Enter" && contextMenu && (contextMenu.showAssign = !contextMenu.showAssign)}
+      onmouseenter={() => {
+        if (contextMenu) contextMenu.showAssign = true;
+      }}
+      onmouseleave={() => {
+        if (contextMenu) contextMenu.showAssign = false;
+      }}
+      onclick={() => {
+        if (contextMenu) contextMenu.showAssign = !contextMenu.showAssign;
+      }}
+      onkeydown={(e) =>
+        e.key === "Enter" && contextMenu && (contextMenu.showAssign = !contextMenu.showAssign)}
     >
       Assign to player
       <span class="context-arrow">▶</span>
@@ -168,10 +165,7 @@
       {/if}
     </div>
 
-    <button
-      class="context-item context-danger"
-      onclick={() => removeToken(contextMenu!.token.id)}
-    >
+    <button class="context-item context-danger" onclick={() => removeToken(contextMenu!.token.id)}>
       Remove
     </button>
   </div>

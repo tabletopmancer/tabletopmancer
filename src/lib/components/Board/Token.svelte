@@ -19,9 +19,7 @@
 
   const globalTransform = getContext<{ position: number[]; scale: number }>("globalTransform");
 
-  const canDrag = $derived(
-    role === "DM" || (player !== null && token.owner === player.id),
-  );
+  const canDrag = $derived(role === "DM" || (player !== null && token.owner === player.id));
 
   let localX = $state(untrack(() => token.position.x));
   let localY = $state(untrack(() => token.position.y));
