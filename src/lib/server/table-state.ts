@@ -10,6 +10,7 @@ const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 const stateCache = new Map<string, BoardState>();
 const emitters = new Map<string, EventEmitter>();
+const dmConnections = new Map<string, number>();
 
 function emptyState(): BoardState {
   return {
@@ -58,6 +59,31 @@ async function persistState(tableId: string): Promise<void> {
 
 export async function getState(tableId: string): Promise<BoardState> {
   return loadState(tableId);
+}
+
+export function isDmConnected(tableId: string): boolean {
+  return (dmConnections.get(tableId) ?? 0) > 0;
+}
+
+export function trackConnection(tableId: string, role: string): () => void {
+  if (role !== "DM") return () => {};
+  return trackDmConnection(tableId);
+}
+
+export function trackDmConnection(tableId: string): () => void {
+  const emitter = getTableEmitter(tableId);
+  const prev = dmConnections.get(tableId) ?? 0;
+  dmConnections.set(tableId, prev + 1);
+  if (prev === 0) emitter.emit("dm-online");
+  return () => {
+    const count = (dmConnections.get(tableId) ?? 1) - 1;
+    if (count <= 0) {
+      dmConnections.delete(tableId);
+      emitter.emit("dm-offline");
+    } else {
+      dmConnections.set(tableId, count);
+    }
+  };
 }
 
 export async function dispatchDelta(tableId: string, delta: DeltaEvent): Promise<void> {

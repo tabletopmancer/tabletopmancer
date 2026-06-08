@@ -40,12 +40,16 @@ const handlers = {
     }
   },
   "player:approved": (state, delta) => {
-    const idx = state.players.findIndex((p) => p.id === delta.player.id);
-    if (idx >= 0) state.players[idx] = delta.player;
-    else state.players.push(delta.player);
+    const p = state.players.find((p) => p.id === delta.playerId);
+    if (p) p.status = "approved";
+  },
+  "player:denied": (state, delta) => {
+    const p = state.players.find((p) => p.id === delta.playerId);
+    if (p) p.status = "denied";
   },
   "player:revoked": (state, delta) => {
-    state.players = state.players.filter((p) => p.id !== delta.playerId);
+    const p = state.players.find((p) => p.id === delta.playerId);
+    if (p) p.status = "revoked";
   },
 } satisfies { [K in DeltaEvent["type"]]: Handler<K> };
 

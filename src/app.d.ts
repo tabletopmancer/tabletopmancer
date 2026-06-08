@@ -5,6 +5,7 @@ declare global {
     // interface Error {}
     interface Locals {
       role: "DM" | "PLAYER";
+      player: Player | null;
     }
     // interface PageData {}
     // interface PageState {}
@@ -77,7 +78,7 @@ declare global {
   type Player = {
     id: string;
     name: string;
-    approved: boolean;
+    status: "pending" | "approved" | "denied" | "revoked";
   };
 
   type BoardState = {
@@ -100,7 +101,8 @@ declare global {
     | { type: "ping"; position: Position; player: string }
     | { type: "initiative:updated"; tracker: InitiativeTracker }
     | { type: "player:joined"; player: Player }
-    | { type: "player:approved"; player: Player }
+    | { type: "player:approved"; playerId: string }
+    | { type: "player:denied"; playerId: string }
     | { type: "player:revoked"; playerId: string };
 }
 
