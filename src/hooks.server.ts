@@ -1,19 +1,37 @@
-import { error, type Handle } from "@sveltejs/kit";
+import { getSession } from "$lib/server/sessions.js";
+import { getState } from "$lib/server/table-state.js";
+import { error, redirect, type Handle, type RequestEvent } from "@sveltejs/kit";
+
+function findApprovedPlayer(players: Player[], id: string): Player | undefined {
+  return players.find((p) => p.id === id && p.status === "approved");
+}
+
+async function authorizePlayer(event: RequestEvent, tableId: string): Promise<void> {
+  const token = event.cookies.get("ttm_token");
+  if (!token) redirect(302, `/join/${tableId}`);
+
+  const playerId = await getSession(tableId, token);
+  if (!playerId) redirect(302, `/join/${tableId}`);
+
+  const state = await getState(tableId);
+  const player = findApprovedPlayer(state.players, playerId);
+  if (!player) redirect(302, `/join/${tableId}`);
+
+  event.locals.player = player;
+}
+
+async function guardPlayer(event: RequestEvent): Promise<void> {
+  if (event.url.pathname === "/") error(401, "Unauthorized");
+
+  const tableMatch = event.url.pathname.match(/^\/table\/([^/]+)/);
+  if (tableMatch) await authorizePlayer(event, tableMatch[1]);
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
-  // Determine the role according to the IP
   event.locals.role = event.getClientAddress() === "127.0.0.1" ? "DM" : "PLAYER";
+  event.locals.player = null;
 
-  // Avoid logging to the dashboard
-  if (event.locals.role !== "DM" && event.url.pathname === "/") {
-    throw error(401, "Unauthorized");
-  }
+  if (event.locals.role !== "DM") await guardPlayer(event);
 
-  // TODO: Avoid accessing closed table resources
-
-  const response = await resolve(event);
-
-  // TODO: If the player is not registered when accessing the table, create its profile
-
-  return response;
+  return resolve(event);
 };

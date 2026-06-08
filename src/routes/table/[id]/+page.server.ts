@@ -74,6 +74,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 
   return {
     role: locals.role,
+    player: locals.player,
+    tableId: params.id,
     assets: assets.toSorted((a, b) => a.name.localeCompare(b.name)),
   };
 };

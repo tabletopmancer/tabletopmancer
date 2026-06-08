@@ -1,9 +1,13 @@
 import { query } from "$app/server";
-import { getState, getTableEmitter } from "$lib/server/table-state.js";
+import { getState, getTableEmitter, trackConnection } from "$lib/server/table-state.js";
 
-export const boardLive = query.live("unchecked", async function* (tableId: string): AsyncGenerator<
+export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<
   BoardState | DeltaEvent
 > {
+  const sep = arg.lastIndexOf("|");
+  const tableId = arg.slice(0, sep);
+  const role = arg.slice(sep + 1);
+
   const queue: DeltaEvent[] = [];
   let notify: (() => void) | null = null;
 
@@ -17,8 +21,9 @@ export const boardLive = query.live("unchecked", async function* (tableId: strin
   const emitter = getTableEmitter(tableId);
   emitter.on("delta", handler);
 
+  const disconnect = trackConnection(tableId, role);
+
   try {
-    // Yield full initial state first so the client can bootstrap
     yield await getState(tableId);
 
     while (true) {
@@ -33,5 +38,6 @@ export const boardLive = query.live("unchecked", async function* (tableId: strin
     }
   } finally {
     emitter.off("delta", handler);
+    disconnect();
   }
 });
