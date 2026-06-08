@@ -16,6 +16,8 @@ declare global {
     name: string;
     code: string;
     icon?: string;
+    type: "system" | "campaign";
+    system?: string;
   };
 
   type Asset = {

@@ -15,6 +15,13 @@ type CodexJson = {
   version: string;
 };
 
+type CampaignJson = {
+  name: string;
+  icon: string;
+  system: string;
+  version: string;
+};
+
 // TODO: Add support for *.zip codexes
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   // TODO: Encrypt the dir name as uuid
@@ -24,12 +31,15 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   // TODO: Check if the dir exists
   const codexesDir = path.join(tablePath, "codexes");
 
-  const g1 = await glob(path.join(codexesDir, "*/codex.json"), {
-    nodir: true,
-    follow: true,
-  });
+  const [systemFiles, campaignFiles] = await Promise.all([
+    glob(path.join(codexesDir, "*/codex.json"), { nodir: true, follow: true }),
+    glob(path.join(codexesDir, "*/campaign.json"), { nodir: true, follow: true }),
+  ]);
 
-  const codexes = await Promise.all(g1.map((file) => loadCodex(file, codexesDir, url.pathname)));
+  const codexes = await Promise.all([
+    ...systemFiles.map((file) => loadCodex(file, codexesDir, url.pathname)),
+    ...campaignFiles.map((file) => loadCampaign(file, codexesDir, url.pathname)),
+  ]);
 
   const assets: Asset[] = [];
 
@@ -39,7 +49,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
       cwd: path.join(codexesDir, codex.relativepath),
       nodir: true,
       follow: true,
-      ignore: ["codex.json"],
+      ignore: ["codex.json", "campaign.json"],
     });
 
     for (let i = 0, l = matches.length; i < l; i++) {
@@ -73,9 +83,24 @@ async function loadCodex(file: string, codexesDir: string, urlPathname: string):
   const dirname = path.dirname(path.relative(codexesDir, file));
   const { name = dirname, short_name = dirname, version = "0", icon } = raw;
   return {
+    type: "system",
     name,
     code: `${short_name}@${version}`,
     relativepath: dirname,
+    icon: icon ? path.join(urlPathname, "asset", dirname, icon) : undefined,
+  } as Codex;
+}
+
+async function loadCampaign(file: string, codexesDir: string, urlPathname: string): Promise<Codex> {
+  const raw: Partial<CampaignJson> = await fs.readJSON(file, "utf8");
+  const dirname = path.dirname(path.relative(codexesDir, file));
+  const { name = dirname, version = "0", icon, system } = raw;
+  return {
+    type: "campaign",
+    name,
+    code: `${dirname}@${version}`,
+    relativepath: dirname,
+    system,
     icon: icon ? path.join(urlPathname, "asset", dirname, icon) : undefined,
   } as Codex;
 }
