@@ -13,6 +13,8 @@
     y: number;
   };
 
+  let { boardState }: { boardState: BoardState } = $props();
+
   // TODO: Set the current map in a store so it can be shown in the assets drawer
   let view = $state<View>({});
 
