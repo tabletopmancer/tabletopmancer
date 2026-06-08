@@ -57,10 +57,12 @@ declare global {
 
   type DiceRoll = {
     id: string;
-    formula: string;
-    result: number;
-    breakdown: number[];
     player: string;
+    formula: string;
+    dice: number[];
+    modifier: number;
+    total: number;
+    private: boolean;
     timestamp: number;
   };
 

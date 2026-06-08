@@ -12,6 +12,7 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   let notify: (() => void) | null = null;
 
   const handler = (delta: DeltaEvent) => {
+    if (delta.type === "dice:rolled" && delta.roll.private && role !== "DM") return;
     queue.push(delta);
     const resolve = notify;
     notify = null;
@@ -24,7 +25,12 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   const disconnect = trackConnection(tableId, role);
 
   try {
-    yield await getState(tableId);
+    const state = await getState(tableId);
+    const visibleState: BoardState =
+      role !== "DM"
+        ? { ...state, rollHistory: state.rollHistory.filter((r) => !r.private) }
+        : state;
+    yield visibleState;
 
     while (true) {
       if (queue.length === 0) {
