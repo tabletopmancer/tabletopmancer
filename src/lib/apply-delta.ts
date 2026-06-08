@@ -14,7 +14,13 @@ const handlers = {
   },
   "token:owner-assigned": (state, delta) => {
     const t = state.tokens.find((t) => t.id === delta.id);
-    if (t) t.owner = delta.owner;
+    if (t) {
+      if (delta.owner === undefined) {
+        delete t.owner;
+      } else {
+        t.owner = delta.owner;
+      }
+    }
   },
   "map:placed": (state, delta) => state.maps.push(delta.map),
   "map:removed": (state, delta) => {

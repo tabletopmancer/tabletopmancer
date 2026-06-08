@@ -93,7 +93,7 @@ declare global {
     | { type: "token:placed"; token: Token }
     | { type: "token:moved"; id: string; position: Position }
     | { type: "token:removed"; id: string }
-    | { type: "token:owner-assigned"; id: string; owner: string }
+    | { type: "token:owner-assigned"; id: string; owner: string | undefined }
     | { type: "map:placed"; map: BoardMap }
     | { type: "map:removed"; id: string }
     | { type: "fog:updated"; mapId: string; patch: FogPatch }
