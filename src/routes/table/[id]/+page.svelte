@@ -180,7 +180,9 @@
   {/if}
 
   {#if data.role === "PLAYER"}
-    <div class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg">
+    <div
+      class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg"
+    >
       <DiceRoller tableId={data.tableId} role={data.role} />
       <button
         class="cursor-pointer text-gray-300 hover:text-gray-100"
