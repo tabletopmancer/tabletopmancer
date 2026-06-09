@@ -1,8 +1,8 @@
 import { query } from "$app/server";
 import { getState, getTableEmitter, trackConnection } from "$lib/server/table-state.js";
 
-function isPrivateDiceRoll(delta: DeltaEvent, role: string): boolean {
-  return delta.type === "dice:rolled" && delta.roll.private && role !== "DM";
+function isPrivateDiceRoll(event: TableEvent, role: string): boolean {
+  return event.type === "dice:rolled" && event.roll.private && role !== "DM";
 }
 
 function filterInitiative(initiative: InitiativeTracker | null): InitiativeTracker | null {
@@ -19,30 +19,30 @@ function stateForRole(state: BoardState, role: string): BoardState {
   };
 }
 
-function filterDeltaForPlayer(delta: DeltaEvent, role: string): DeltaEvent | null {
-  if (isPrivateDiceRoll(delta, role)) return null;
-  if (delta.type === "initiative:updated" && delta.tracker) {
-    return { ...delta, tracker: filterInitiative(delta.tracker) };
+function filterEventForPlayer(event: TableEvent, role: string): TableEvent | null {
+  if (isPrivateDiceRoll(event, role)) return null;
+  if (event.type === "initiative:updated" && event.tracker) {
+    return { ...event, tracker: filterInitiative(event.tracker) };
   }
-  return delta;
+  return event;
 }
 
-function deltaForRole(delta: DeltaEvent, role: string): DeltaEvent | null {
-  return role === "DM" ? delta : filterDeltaForPlayer(delta, role);
+function eventForRole(event: TableEvent, role: string): TableEvent | null {
+  return role === "DM" ? event : filterEventForPlayer(event, role);
 }
 
 export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<
-  BoardState | DeltaEvent
+  BoardState | TableEvent
 > {
   const sep = arg.lastIndexOf("|");
   const tableId = arg.slice(0, sep);
   const role = arg.slice(sep + 1);
 
-  const queue: DeltaEvent[] = [];
+  const queue: TableEvent[] = [];
   let notify: (() => void) | null = null;
 
-  const handler = (delta: DeltaEvent) => {
-    const filtered = deltaForRole(delta, role);
+  const handler = (event: TableEvent) => {
+    const filtered = eventForRole(event, role);
     if (!filtered) return;
     queue.push(filtered);
     const resolve = notify;
@@ -51,7 +51,7 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   };
 
   const emitter = getTableEmitter(tableId);
-  emitter.on("delta", handler);
+  emitter.on("table-event", handler);
 
   const disconnect = trackConnection(tableId, role);
 
@@ -69,7 +69,7 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
       }
     }
   } finally {
-    emitter.off("delta", handler);
+    emitter.off("table-event", handler);
     disconnect();
   }
 });

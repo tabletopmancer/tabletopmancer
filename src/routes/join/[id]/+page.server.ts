@@ -1,5 +1,5 @@
 import { createSession, getSession } from "$lib/server/sessions.js";
-import { getState, dispatchDelta } from "$lib/server/table-state.js";
+import { getState, dispatchTableEvent } from "$lib/server/table-state.js";
 import { redirect } from "@sveltejs/kit";
 import crypto from "node:crypto";
 import type { Actions, PageServerLoad } from "./$types";
@@ -47,7 +47,7 @@ export const actions: Actions = {
       maxAge: 60 * 60 * 24 * 365,
     });
 
-    await dispatchDelta(tableId, { type: "player:joined", player });
+    await dispatchTableEvent(tableId, { type: "player:joined", player });
     redirect(302, `/join/${tableId}`);
   },
 
