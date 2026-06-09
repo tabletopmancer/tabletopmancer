@@ -26,13 +26,15 @@ const handlers = {
   "map:removed": (state, delta) => {
     state.maps = state.maps.filter((m) => m.id !== delta.id);
   },
+  "map:moved": (state, delta) => {
+    const m = state.maps.find((m) => m.id === delta.id);
+    if (m) m.position = delta.position;
+  },
   "fog:updated": (state, delta) => {
     const m = state.maps.find((m) => m.id === delta.mapId);
     if (m) {
-      m.fog ??= {};
-      for (const cell of delta.patch.cells) {
-        m.fog[`${cell.x},${cell.y}`] = cell.visible;
-      }
+      m.fog ??= [];
+      m.fog.push(delta.patch);
     }
   },
   "dice:rolled": (state, delta) => state.rollHistory.push(delta.roll),
