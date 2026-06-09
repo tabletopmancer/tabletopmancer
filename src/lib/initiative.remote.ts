@@ -1,5 +1,5 @@
 import { command } from "$app/server";
-import { dispatchDelta, getState } from "$lib/server/table-state.js";
+import { dispatchTableEvent, getState } from "$lib/server/table-state.js";
 import { randomUUID } from "node:crypto";
 
 function sortEntries(entries: InitiativeEntry[]): InitiativeEntry[] {
@@ -15,14 +15,14 @@ export const activateInitiative = command("unchecked", async (tableId: string) =
   const entries: InitiativeEntry[] = state.tokens
     .filter((t) => t.owner !== undefined)
     .map((t) => ({ tokenId: t.id, name: t.name, initiative: null, isNPC: false }));
-  await dispatchDelta(tableId, {
+  await dispatchTableEvent(tableId, {
     type: "initiative:updated",
     tracker: { active: true, entries, turn: 0 },
   });
 });
 
 export const deactivateInitiative = command("unchecked", async (tableId: string) => {
-  await dispatchDelta(tableId, { type: "initiative:updated", tracker: null });
+  await dispatchTableEvent(tableId, { type: "initiative:updated", tracker: null });
 });
 
 export const addNpcEntry = command(
@@ -36,7 +36,7 @@ export const addNpcEntry = command(
       initiative: arg.initiative,
       isNPC: true,
     };
-    await dispatchDelta(arg.tableId, {
+    await dispatchTableEvent(arg.tableId, {
       type: "initiative:updated",
       tracker: {
         ...state.initiative,
@@ -51,7 +51,7 @@ export const removeInitiativeEntry = command(
   async (arg: { tableId: string; tokenId: string }) => {
     const state = await getState(arg.tableId);
     if (!state.initiative) return;
-    await dispatchDelta(arg.tableId, {
+    await dispatchTableEvent(arg.tableId, {
       type: "initiative:updated",
       tracker: {
         ...state.initiative,
@@ -64,7 +64,7 @@ export const removeInitiativeEntry = command(
 export const adjustTurn = command("unchecked", async (arg: { tableId: string; delta: number }) => {
   const state = await getState(arg.tableId);
   if (!state.initiative) return;
-  await dispatchDelta(arg.tableId, {
+  await dispatchTableEvent(arg.tableId, {
     type: "initiative:updated",
     tracker: {
       ...state.initiative,

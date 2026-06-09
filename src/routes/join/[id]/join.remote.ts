@@ -8,16 +8,16 @@ type PlayerStatusEvent =
   | { type: "player:denied" }
   | { type: "player:revoked" };
 
-type PlayerDelta = Extract<
-  DeltaEvent,
+type PlayerTableEvent = Extract<
+  TableEvent,
   { type: "player:approved" | "player:denied" | "player:revoked" }
 >;
 
-function isPlayerDelta(delta: DeltaEvent): delta is PlayerDelta {
+function isPlayerTableEvent(event: TableEvent): event is PlayerTableEvent {
   return (
-    delta.type === "player:approved" ||
-    delta.type === "player:denied" ||
-    delta.type === "player:revoked"
+    event.type === "player:approved" ||
+    event.type === "player:denied" ||
+    event.type === "player:revoked"
   );
 }
 
@@ -41,10 +41,10 @@ export const playerStatus = query.live(
       resolve?.();
     };
 
-    const deltaHandler = (delta: DeltaEvent) => {
-      if (!isPlayerDelta(delta)) return;
-      if (delta.playerId !== playerId) return;
-      queue.push({ type: delta.type });
+    const eventHandler = (event: TableEvent) => {
+      if (!isPlayerTableEvent(event)) return;
+      if (event.playerId !== playerId) return;
+      queue.push({ type: event.type });
       wake();
     };
 
@@ -59,7 +59,7 @@ export const playerStatus = query.live(
     };
 
     const emitter = getTableEmitter(tableId);
-    emitter.on("delta", deltaHandler);
+    emitter.on("table-event", eventHandler);
     emitter.on("dm-online", dmOnlineHandler);
     emitter.on("dm-offline", dmOfflineHandler);
 
@@ -77,7 +77,7 @@ export const playerStatus = query.live(
         }
       }
     } finally {
-      emitter.off("delta", deltaHandler);
+      emitter.off("table-event", eventHandler);
       emitter.off("dm-online", dmOnlineHandler);
       emitter.off("dm-offline", dmOfflineHandler);
     }

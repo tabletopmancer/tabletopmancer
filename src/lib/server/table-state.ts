@@ -1,10 +1,10 @@
-import { applyDelta } from "$lib/apply-delta.js";
+import { applyTableEvent } from "$lib/apply-table-event.js";
 import { TABLETOPMANCER_HOME } from "$env/static/private";
 import fs from "fs-extra";
 import { EventEmitter } from "node:events";
 import path from "node:path";
 
-export { applyDelta };
+export { applyTableEvent };
 
 const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
@@ -86,9 +86,9 @@ export function trackDmConnection(tableId: string): () => void {
   };
 }
 
-export async function dispatchDelta(tableId: string, delta: DeltaEvent): Promise<void> {
+export async function dispatchTableEvent(tableId: string, event: TableEvent): Promise<void> {
   const state = await loadState(tableId);
-  applyDelta(state, delta);
+  applyTableEvent(state, event);
   await persistState(tableId);
-  getTableEmitter(tableId).emit("delta", delta);
+  getTableEmitter(tableId).emit("table-event", event);
 }

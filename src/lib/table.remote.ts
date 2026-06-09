@@ -1,5 +1,5 @@
 import { command } from "$app/server";
-import { dispatchDelta, getState, getTableEmitter } from "$lib/server/table-state.js";
+import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
 import { randomUUID } from "node:crypto";
 
 export const placeToken = command(
@@ -11,14 +11,14 @@ export const placeToken = command(
       imageUrl: arg.imageUrl,
       position: arg.position,
     };
-    await dispatchDelta(arg.tableId, { type: "token:placed", token });
+    await dispatchTableEvent(arg.tableId, { type: "token:placed", token });
   },
 );
 
 export const moveToken = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string; position: Position }) => {
-    await dispatchDelta(arg.tableId, {
+    await dispatchTableEvent(arg.tableId, {
       type: "token:moved",
       id: arg.tokenId,
       position: arg.position,
@@ -29,7 +29,7 @@ export const moveToken = command(
 export const assignTokenOwner = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string; owner: string | null }) => {
-    await dispatchDelta(arg.tableId, {
+    await dispatchTableEvent(arg.tableId, {
       type: "token:owner-assigned",
       id: arg.tokenId,
       owner: arg.owner ?? undefined,
@@ -40,7 +40,7 @@ export const assignTokenOwner = command(
 export const removeToken = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string }) => {
-    await dispatchDelta(arg.tableId, { type: "token:removed", id: arg.tokenId });
+    await dispatchTableEvent(arg.tableId, { type: "token:removed", id: arg.tokenId });
   },
 );
 
@@ -53,25 +53,25 @@ export const placeMap = command(
       position: arg.position,
       fog: [],
     };
-    await dispatchDelta(arg.tableId, { type: "map:placed", map });
+    await dispatchTableEvent(arg.tableId, { type: "map:placed", map });
   },
 );
 
 export const moveMap = command(
   "unchecked",
   async (arg: { tableId: string; mapId: string; position: Position }) => {
-    await dispatchDelta(arg.tableId, { type: "map:moved", id: arg.mapId, position: arg.position });
+    await dispatchTableEvent(arg.tableId, { type: "map:moved", id: arg.mapId, position: arg.position });
   },
 );
 
 export const removeMap = command("unchecked", async (arg: { tableId: string; mapId: string }) => {
-  await dispatchDelta(arg.tableId, { type: "map:removed", id: arg.mapId });
+  await dispatchTableEvent(arg.tableId, { type: "map:removed", id: arg.mapId });
 });
 
 export const updateFog = command(
   "unchecked",
   async (arg: { tableId: string; mapId: string; patch: FogPatch }) => {
-    await dispatchDelta(arg.tableId, { type: "fog:updated", mapId: arg.mapId, patch: arg.patch });
+    await dispatchTableEvent(arg.tableId, { type: "fog:updated", mapId: arg.mapId, patch: arg.patch });
   },
 );
 
@@ -122,7 +122,7 @@ async function captureInitiative(
     .map((e) => applyRoll(e, playerToken.id, rollTotal))
     .toSorted(sortByInitiative);
 
-  await dispatchDelta(tableId, {
+  await dispatchTableEvent(tableId, {
     type: "initiative:updated",
     tracker: { ...initiative, entries: updatedEntries },
   });
@@ -158,7 +158,7 @@ export const rollDice = command(
       timestamp: Date.now(),
     };
 
-    await dispatchDelta(arg.tableId, { type: "dice:rolled", roll });
+    await dispatchTableEvent(arg.tableId, { type: "dice:rolled", roll });
 
     if (arg.playerId) {
       await captureInitiative(arg.tableId, arg.playerId, total);
@@ -178,14 +178,14 @@ export const actOnPlayer = command(
       revoke: "player:revoked",
     } as const;
 
-    await dispatchDelta(arg.tableId, { type: actionEvents[arg.action], playerId: arg.playerId });
+    await dispatchTableEvent(arg.tableId, { type: actionEvents[arg.action], playerId: arg.playerId });
   },
 );
 
 export const pingTable = command(
   "unchecked",
   async (arg: { tableId: string; position: Position; player: string }) => {
-    const delta: DeltaEvent = { type: "ping", position: arg.position, player: arg.player };
-    getTableEmitter(arg.tableId).emit("delta", delta);
+    const event: TableEvent = { type: "ping", position: arg.position, player: arg.player };
+    getTableEmitter(arg.tableId).emit("table-event", event);
   },
 );

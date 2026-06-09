@@ -96,7 +96,7 @@ declare global {
     players: Player[];
   };
 
-  type DeltaEvent =
+  type TableEvent =
     | { type: "token:placed"; token: Token }
     | { type: "token:moved"; id: string; position: Position }
     | { type: "token:removed"; id: string }

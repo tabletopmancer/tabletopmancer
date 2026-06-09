@@ -8,7 +8,7 @@
   import PlayerManagement from "$lib/components/PlayerManagement.svelte";
   import RollHistory from "$lib/components/RollHistory.svelte";
   import Table from "$lib/components/Table.svelte";
-  import { applyDelta } from "$lib/apply-delta.js";
+  import { applyTableEvent } from "$lib/apply-table-event.js";
   import { activateInitiative } from "$lib/initiative.remote";
   import { pingTable } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
@@ -63,15 +63,15 @@
     }, 2000);
   }
 
-  function isFullState(value: BoardState | DeltaEvent): value is BoardState {
+  function isFullState(value: BoardState | TableEvent): value is BoardState {
     return !("type" in value);
   }
 
-  function isOwnRevoke(event: DeltaEvent, player: Player | null): boolean {
+  function isOwnRevoke(event: TableEvent, player: Player | null): boolean {
     return event.type === "player:revoked" && event.playerId === player?.id;
   }
 
-  async function handleEvent(value: BoardState | DeltaEvent): Promise<void> {
+  async function handleEvent(value: BoardState | TableEvent): Promise<void> {
     if (isFullState(value)) {
       boardState = value;
       return;
@@ -80,7 +80,7 @@
       addPing(value.position);
       return;
     }
-    applyDelta(boardState, value);
+    applyTableEvent(boardState, value);
     if (isOwnRevoke(value, data.player)) {
       await goto(`/join/${data.tableId}`);
     }
