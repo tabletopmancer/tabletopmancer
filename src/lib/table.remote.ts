@@ -18,7 +18,11 @@ export const placeToken = command(
 export const moveToken = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string; position: Position }) => {
-    await dispatchDelta(arg.tableId, { type: "token:moved", id: arg.tokenId, position: arg.position });
+    await dispatchDelta(arg.tableId, {
+      type: "token:moved",
+      id: arg.tokenId,
+      position: arg.position,
+    });
   },
 );
 
@@ -60,12 +64,9 @@ export const moveMap = command(
   },
 );
 
-export const removeMap = command(
-  "unchecked",
-  async (arg: { tableId: string; mapId: string }) => {
-    await dispatchDelta(arg.tableId, { type: "map:removed", id: arg.mapId });
-  },
-);
+export const removeMap = command("unchecked", async (arg: { tableId: string; mapId: string }) => {
+  await dispatchDelta(arg.tableId, { type: "map:removed", id: arg.mapId });
+});
 
 export const updateFog = command(
   "unchecked",
@@ -82,32 +83,48 @@ function parseFormula(formula: string): { count: number; sides: number; modifier
   return { count: parseInt(m[1]), sides: parseInt(m[2]), modifier: m[3] ? parseInt(m[3]) : 0 };
 }
 
-async function captureInitiative(tableId: string, playerId: string, rollTotal: number): Promise<void> {
+function sortByInitiative(a: InitiativeEntry, b: InitiativeEntry): number {
+  if (a.initiative === null) return b.initiative === null ? 0 : 1;
+  if (b.initiative === null) return -1;
+  return b.initiative - a.initiative;
+}
+
+function findPendingEntry(
+  entries: InitiativeEntry[],
+  tokenId: string,
+): InitiativeEntry | undefined {
+  return entries.find((e) => e.tokenId === tokenId && e.initiative === null);
+}
+
+function applyRoll(entry: InitiativeEntry, tokenId: string, roll: number): InitiativeEntry {
+  return entry.tokenId === tokenId ? { ...entry, initiative: entry.initiative ?? roll } : entry;
+}
+
+function activeInitiative(state: BoardState): InitiativeTracker | null {
+  return state.initiative?.active ? state.initiative : null;
+}
+
+async function captureInitiative(
+  tableId: string,
+  playerId: string,
+  rollTotal: number,
+): Promise<void> {
   const state = await getState(tableId);
-  if (!state.initiative?.active) return;
+  const initiative = activeInitiative(state);
+  if (!initiative) return;
 
   const playerToken = state.tokens.find((t) => t.owner === playerId);
   if (!playerToken) return;
 
-  const entry = state.initiative.entries.find(
-    (e) => e.tokenId === playerToken.id && e.initiative === null,
-  );
-  if (!entry) return;
+  if (!findPendingEntry(initiative.entries, playerToken.id)) return;
 
-  const updatedEntries = [...state.initiative.entries]
-    .map((e) =>
-      e.tokenId === playerToken.id && e.initiative === null ? { ...e, initiative: rollTotal } : e,
-    )
-    .sort((a, b) => {
-      if (a.initiative === null && b.initiative === null) return 0;
-      if (a.initiative === null) return 1;
-      if (b.initiative === null) return -1;
-      return b.initiative - a.initiative;
-    });
+  const updatedEntries = initiative.entries
+    .map((e) => applyRoll(e, playerToken.id, rollTotal))
+    .toSorted(sortByInitiative);
 
   await dispatchDelta(tableId, {
     type: "initiative:updated",
-    tracker: { ...state.initiative, entries: updatedEntries },
+    tracker: { ...initiative, entries: updatedEntries },
   });
 }
 
@@ -137,13 +154,13 @@ export const rollDice = command(
       dice,
       modifier: parsed.modifier,
       total,
-      private: isDM && (arg.private ?? true),
+      private: isDM && arg.private !== false,
       timestamp: Date.now(),
     };
 
     await dispatchDelta(arg.tableId, { type: "dice:rolled", roll });
 
-    if (!isDM && arg.playerId) {
+    if (arg.playerId) {
       await captureInitiative(arg.tableId, arg.playerId, total);
     }
   },
