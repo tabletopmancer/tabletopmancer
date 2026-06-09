@@ -3,9 +3,8 @@ import { dispatchDelta, getState } from "$lib/server/table-state.js";
 import { randomUUID } from "node:crypto";
 
 function sortEntries(entries: InitiativeEntry[]): InitiativeEntry[] {
-  return [...entries].sort((a, b) => {
-    if (a.initiative === null && b.initiative === null) return 0;
-    if (a.initiative === null) return 1;
+  return entries.toSorted((a, b) => {
+    if (a.initiative === null) return b.initiative === null ? 0 : 1;
     if (b.initiative === null) return -1;
     return b.initiative - a.initiative;
   });

@@ -66,14 +66,14 @@
   }
 
   async function onDrop(asset: Asset, event: DragEvent) {
+    const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
+
     if (asset.mimetype === "application/vnd.universal.vtt") {
-      const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
       await placeMap({ tableId, assetUrl: asset.url, position: pos });
       return;
     }
 
     if (asset.mimetype === "application/json") {
-      const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
       const { name, imageUrl } = await resolveTokenData(asset);
       await placeToken({ tableId, name, imageUrl, position: pos });
     }
@@ -228,7 +228,10 @@
       {/if}
     </div>
 
-    <button class="context-item context-danger" onclick={() => handleRemoveToken(contextMenu!.token.id)}>
+    <button
+      class="context-item context-danger"
+      onclick={() => handleRemoveToken(contextMenu!.token.id)}
+    >
       Remove
     </button>
   </div>

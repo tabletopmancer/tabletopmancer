@@ -19,13 +19,16 @@ function stateForRole(state: BoardState, role: string): BoardState {
   };
 }
 
-function deltaForRole(delta: DeltaEvent, role: string): DeltaEvent | null {
-  if (role === "DM") return delta;
+function filterDeltaForPlayer(delta: DeltaEvent, role: string): DeltaEvent | null {
   if (isPrivateDiceRoll(delta, role)) return null;
   if (delta.type === "initiative:updated" && delta.tracker) {
     return { ...delta, tracker: filterInitiative(delta.tracker) };
   }
   return delta;
+}
+
+function deltaForRole(delta: DeltaEvent, role: string): DeltaEvent | null {
+  return role === "DM" ? delta : filterDeltaForPlayer(delta, role);
 }
 
 export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<

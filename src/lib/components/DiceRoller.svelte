@@ -20,14 +20,12 @@
     const f = formula.trim();
     if (!f || rolling) return;
     rolling = true;
+    const playerInfo =
+      role === "DM"
+        ? { playerName: "DM", playerId: null }
+        : { playerName: player!.name, playerId: player!.id };
     try {
-      await rollDice({
-        tableId,
-        formula: f,
-        private: isPrivate,
-        playerName: role === "DM" ? "DM" : player!.name,
-        playerId: role === "DM" ? null : player!.id,
-      });
+      await rollDice({ tableId, formula: f, private: isPrivate, ...playerInfo });
       formula = "";
     } finally {
       rolling = false;
