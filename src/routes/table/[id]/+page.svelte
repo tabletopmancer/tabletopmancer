@@ -10,6 +10,7 @@
   import Table from "$lib/components/Table.svelte";
   import { applyDelta } from "$lib/apply-delta.js";
   import { activateInitiative } from "$lib/initiative.remote";
+  import { pingTable } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -33,10 +34,10 @@
   }
 
   async function sendPing(position: Position) {
-    await fetch(`/table/${data.tableId}/ping`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ position }),
+    await pingTable({
+      tableId: data.tableId,
+      position,
+      player: data.role === "DM" ? "DM" : data.player!.name,
     });
   }
 
@@ -119,7 +120,7 @@
   {#if data.role === "DM"}
     <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
       <li>
-        <DiceRoller tableId={data.tableId} role={data.role} />
+        <DiceRoller tableId={data.tableId} role={data.role} player={data.player} />
       </li>
       <li>
         <button
@@ -240,7 +241,7 @@
     <div
       class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg"
     >
-      <DiceRoller tableId={data.tableId} role={data.role} />
+      <DiceRoller tableId={data.tableId} role={data.role} player={data.player} />
       <button
         class="cursor-pointer text-gray-300 hover:text-gray-100"
         aria-label="Toggle roll history"

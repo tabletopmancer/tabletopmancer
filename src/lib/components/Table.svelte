@@ -1,5 +1,6 @@
 <script lang="ts">
   import { dropzone } from "$lib/actions/drag-n-drop.js";
+  import { placeToken, placeMap, removeToken, assignTokenOwner } from "$lib/table.remote";
   import Board from "./Board.svelte";
   import AssetNode from "./Board/Asset.svelte";
   import FogMap from "./Board/FogMap.svelte";
@@ -67,22 +68,14 @@
   async function onDrop(asset: Asset, event: DragEvent) {
     if (asset.mimetype === "application/vnd.universal.vtt") {
       const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
-      await fetch(`/table/${tableId}/map`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assetUrl: asset.url, position: pos }),
-      });
+      await placeMap({ tableId, assetUrl: asset.url, position: pos });
       return;
     }
 
     if (asset.mimetype === "application/json") {
       const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
       const { name, imageUrl } = await resolveTokenData(asset);
-      await fetch(`/table/${tableId}/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, imageUrl, position: pos }),
-      });
+      await placeToken({ tableId, name, imageUrl, position: pos });
     }
   }
 
@@ -94,18 +87,14 @@
     contextMenu = null;
   }
 
-  async function removeToken(tokenId: string) {
+  async function handleRemoveToken(tokenId: string) {
     closeMenu();
-    await fetch(`/table/${tableId}/token/${tokenId}`, { method: "DELETE" });
+    await removeToken({ tableId, tokenId });
   }
 
   async function assignOwner(tokenId: string, ownerId: string | null) {
     closeMenu();
-    await fetch(`/table/${tableId}/token/${tokenId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ owner: ownerId }),
-    });
+    await assignTokenOwner({ tableId, tokenId, owner: ownerId });
   }
 
   function handleBoardClick(event: MouseEvent) {
@@ -239,7 +228,7 @@
       {/if}
     </div>
 
-    <button class="context-item context-danger" onclick={() => removeToken(contextMenu!.token.id)}>
+    <button class="context-item context-danger" onclick={() => handleRemoveToken(contextMenu!.token.id)}>
       Remove
     </button>
   </div>

@@ -2,6 +2,7 @@
   import { getContext, untrack } from "svelte";
   import { usePan, type GestureCustomEvent } from "svelte-gestures";
   import { MOUSE_BUTTON_LEFT } from "$lib/constants.js";
+  import { moveToken } from "$lib/table.remote";
 
   let {
     token,
@@ -70,18 +71,7 @@
     if (srcEvent.button !== MOUSE_BUTTON_LEFT || !dragging) return;
     dragging = false;
     pendingMove = true;
-
-    const response = await fetch(`/table/${tableId}/token/${token.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ position: { x: localX, y: localY } }),
-    });
-
-    if (!response.ok) {
-      localX = savedX;
-      localY = savedY;
-    }
-
+    await moveToken({ tableId, tokenId: token.id, position: { x: localX, y: localY } });
     pendingMove = false;
   }
 

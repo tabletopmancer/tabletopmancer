@@ -1,5 +1,6 @@
 <script lang="ts">
   import { X } from "@lucide/svelte";
+  import { actOnPlayer } from "$lib/table.remote";
 
   let { tableId, players, onclose }: { tableId: string; players: Player[]; onclose: () => void } =
     $props();
@@ -9,11 +10,7 @@
   const others = $derived(players.filter((p) => p.status === "denied" || p.status === "revoked"));
 
   async function act(playerId: string, action: "approve" | "deny" | "revoke") {
-    await fetch(`/table/${tableId}/players/${playerId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
+    await actOnPlayer({ tableId, playerId, action });
   }
 </script>
 
