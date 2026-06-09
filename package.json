@@ -11,7 +11,8 @@
     "format:check": "oxfmt --check",
     "lint": "oxlint src",
     "analyze": "fallow",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@lucide/svelte": "^1.17.0",
@@ -26,6 +27,8 @@
     "fallow": "^2.89.0",
     "fs-extra": "^11.3.5",
     "glob": "^13.0.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "mime": "^4.1.0",
     "oxfmt": "^0.53.0",
     "oxlint": "^1.68.0",
@@ -36,6 +39,10 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.16"
+  },
+  "lint-staged": {
+    "*.{ts,js,svelte,css}": "oxfmt --write",
+    "*.{ts,js,svelte}": "oxlint"
   },
   "engines": {
     "node": ">=24",
