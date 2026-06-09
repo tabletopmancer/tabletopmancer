@@ -69,15 +69,17 @@ declare global {
     timestamp: number;
   };
 
+  type InitiativeEntry = {
+    tokenId: string;
+    name: string;
+    initiative: number | null;
+    isNPC: boolean;
+  };
+
   type InitiativeTracker = {
-    entries: Array<{
-      id: string;
-      name: string;
-      initiative: number;
-      tokenId?: string;
-    }>;
-    currentIndex: number;
-    round: number;
+    active: boolean;
+    entries: InitiativeEntry[];
+    turn: number;
   };
 
   type Player = {
@@ -105,7 +107,7 @@ declare global {
     | { type: "fog:updated"; mapId: string; patch: FogPatch }
     | { type: "dice:rolled"; roll: DiceRoll }
     | { type: "ping"; position: Position; player: string }
-    | { type: "initiative:updated"; tracker: InitiativeTracker }
+    | { type: "initiative:updated"; tracker: InitiativeTracker | null }
     | { type: "player:joined"; player: Player }
     | { type: "player:approved"; playerId: string }
     | { type: "player:denied"; playerId: string }

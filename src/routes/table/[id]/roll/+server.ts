@@ -1,4 +1,4 @@
-import { dispatchDelta } from "$lib/server/table-state.js";
+import { dispatchDelta, getState } from "$lib/server/table-state.js";
 import { error, json } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
 import type { RequestHandler } from "./$types";
@@ -57,5 +57,43 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
   const roll = buildRoll(locals, formula, privateFlag, parsed);
   await dispatchDelta(params.id, { type: "dice:rolled", roll });
+
+  if (locals.role === "PLAYER" && locals.player) {
+    await captureInitiative(params.id, locals.player.id, roll.total);
+  }
+
   return json({ ok: true, roll });
 };
+
+async function captureInitiative(
+  tableId: string,
+  playerId: string,
+  rollTotal: number,
+): Promise<void> {
+  const state = await getState(tableId);
+  if (!state.initiative?.active) return;
+
+  const playerToken = state.tokens.find((t) => t.owner === playerId);
+  if (!playerToken) return;
+
+  const entry = state.initiative.entries.find(
+    (e) => e.tokenId === playerToken.id && e.initiative === null,
+  );
+  if (!entry) return;
+
+  const updatedEntries = [...state.initiative.entries]
+    .map((e) =>
+      e.tokenId === playerToken.id && e.initiative === null ? { ...e, initiative: rollTotal } : e,
+    )
+    .sort((a, b) => {
+      if (a.initiative === null && b.initiative === null) return 0;
+      if (a.initiative === null) return 1;
+      if (b.initiative === null) return -1;
+      return b.initiative - a.initiative;
+    });
+
+  await dispatchDelta(tableId, {
+    type: "initiative:updated",
+    tracker: { ...state.initiative, entries: updatedEntries },
+  });
+}

@@ -1,13 +1,15 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { History, Link, Rss, UserCog, UserPlus, X } from "@lucide/svelte";
+  import { History, Link, Rss, Swords, UserCog, UserPlus, X } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
+  import InitiativeTracker from "$lib/components/InitiativeTracker.svelte";
   import PlayerManagement from "$lib/components/PlayerManagement.svelte";
   import RollHistory from "$lib/components/RollHistory.svelte";
   import Table from "$lib/components/Table.svelte";
   import { applyDelta } from "$lib/apply-delta.js";
+  import { activateInitiative } from "$lib/initiative.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -41,6 +43,7 @@
   let showPlayerManagement = $state(false);
   let showInviteLink = $state(false);
   let showRollHistory = $state(false);
+  let showInitiative = $state(false);
   let inviteCopied = $state(false);
 
   const inviteUrl = $derived(
@@ -128,6 +131,22 @@
         </button>
       </li>
       <li>
+        <button
+          class="cursor-pointer {boardState.initiative
+            ? 'text-amber-300'
+            : 'text-gray-300 hover:text-gray-100'}"
+          aria-label="Toggle initiative tracker"
+          onclick={async () => {
+            if (!boardState.initiative) {
+              await activateInitiative(data.tableId);
+            }
+            showInitiative = !showInitiative;
+          }}
+        >
+          <Swords size={20} />
+        </button>
+      </li>
+      <li>
         <button class="cursor-pointer" aria-label="Open the session">
           <Rss />
         </button>
@@ -206,6 +225,15 @@
         onclose={() => (showRollHistory = false)}
       />
     {/if}
+
+    {#if showInitiative && boardState.initiative}
+      <InitiativeTracker
+        tracker={boardState.initiative}
+        tableId={data.tableId}
+        role={data.role}
+        onclose={() => (showInitiative = false)}
+      />
+    {/if}
   {/if}
 
   {#if data.role === "PLAYER"}
@@ -220,6 +248,17 @@
       >
         <History size={18} />
       </button>
+      {#if boardState.initiative}
+        <button
+          class="cursor-pointer {showInitiative
+            ? 'text-amber-300'
+            : 'text-gray-300 hover:text-gray-100'}"
+          aria-label="Toggle initiative tracker"
+          onclick={() => (showInitiative = !showInitiative)}
+        >
+          <Swords size={18} />
+        </button>
+      {/if}
     </div>
 
     {#if showRollHistory}
@@ -227,6 +266,15 @@
         rollHistory={boardState.rollHistory}
         role={data.role}
         onclose={() => (showRollHistory = false)}
+      />
+    {/if}
+
+    {#if showInitiative && boardState.initiative}
+      <InitiativeTracker
+        tracker={boardState.initiative}
+        tableId={data.tableId}
+        role={data.role}
+        onclose={() => (showInitiative = false)}
       />
     {/if}
   {/if}

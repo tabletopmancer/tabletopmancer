@@ -5,9 +5,27 @@ function isPrivateDiceRoll(delta: DeltaEvent, role: string): boolean {
   return delta.type === "dice:rolled" && delta.roll.private && role !== "DM";
 }
 
+function filterInitiative(initiative: InitiativeTracker | null): InitiativeTracker | null {
+  if (!initiative) return null;
+  return { ...initiative, entries: initiative.entries.filter((e) => !e.isNPC) };
+}
+
 function stateForRole(state: BoardState, role: string): BoardState {
   if (role === "DM") return state;
-  return { ...state, rollHistory: state.rollHistory.filter((r) => !r.private) };
+  return {
+    ...state,
+    rollHistory: state.rollHistory.filter((r) => !r.private),
+    initiative: filterInitiative(state.initiative),
+  };
+}
+
+function deltaForRole(delta: DeltaEvent, role: string): DeltaEvent | null {
+  if (role === "DM") return delta;
+  if (isPrivateDiceRoll(delta, role)) return null;
+  if (delta.type === "initiative:updated" && delta.tracker) {
+    return { ...delta, tracker: filterInitiative(delta.tracker) };
+  }
+  return delta;
 }
 
 export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<
@@ -21,8 +39,9 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   let notify: (() => void) | null = null;
 
   const handler = (delta: DeltaEvent) => {
-    if (isPrivateDiceRoll(delta, role)) return;
-    queue.push(delta);
+    const filtered = deltaForRole(delta, role);
+    if (!filtered) return;
+    queue.push(filtered);
     const resolve = notify;
     notify = null;
     resolve?.();
