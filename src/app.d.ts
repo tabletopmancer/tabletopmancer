@@ -48,11 +48,14 @@ declare global {
     id: string;
     assetUrl: string;
     position: Position;
-    fog?: Record<string, boolean>;
+    fog: FogPatch[];
   };
 
   type FogPatch = {
-    cells: Array<{ x: number; y: number; visible: boolean }>;
+    mode: "reveal" | "hide";
+    x: number;
+    y: number;
+    radius: number;
   };
 
   type DiceRoll = {
@@ -98,6 +101,7 @@ declare global {
     | { type: "token:owner-assigned"; id: string; owner: string | undefined }
     | { type: "map:placed"; map: BoardMap }
     | { type: "map:removed"; id: string }
+    | { type: "map:moved"; id: string; position: Position }
     | { type: "fog:updated"; mapId: string; patch: FogPatch }
     | { type: "dice:rolled"; roll: DiceRoll }
     | { type: "ping"; position: Position; player: string }
