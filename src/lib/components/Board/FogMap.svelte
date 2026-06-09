@@ -2,6 +2,7 @@
   import { getContext, untrack } from "svelte";
   import { usePan, type GestureCustomEvent } from "svelte-gestures";
   import { MOUSE_BUTTON_LEFT } from "$lib/constants.js";
+  import { moveMap, updateFog } from "$lib/table.remote";
 
   let {
     map,
@@ -125,15 +126,7 @@
     if (srcEvent.button !== MOUSE_BUTTON_LEFT || !dragging) return;
     dragging = false;
     pendingMove = true;
-    const res = await fetch(`/table/${tableId}/map/${map.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ position: { x: localX, y: localY } }),
-    });
-    if (!res.ok) {
-      localX = savedX;
-      localY = savedY;
-    }
+    await moveMap({ tableId, mapId: map.id, position: { x: localX, y: localY } });
     pendingMove = false;
   }
 
@@ -183,11 +176,7 @@
 
     if (canvasEl) drawPatch(canvasEl.getContext("2d")!, patch);
 
-    await fetch(`/table/${tableId}/map/${map.id}/fog`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patch }),
-    });
+    await updateFog({ tableId, mapId: map.id, patch });
   }
 </script>
 

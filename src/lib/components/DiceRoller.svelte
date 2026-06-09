@@ -1,16 +1,19 @@
 <script lang="ts">
   import { Dices } from "@lucide/svelte";
+  import { rollDice } from "$lib/table.remote";
 
   let {
     tableId,
     role,
+    player,
   }: {
     tableId: string;
     role: "DM" | "PLAYER";
+    player: Player | null;
   } = $props();
 
   let formula = $state("");
-  let isPrivate = $state(true); // DM rolls private by default; server enforces false for players
+  let isPrivate = $state(true); // DM rolls private by default
   let rolling = $state(false);
 
   async function roll() {
@@ -18,10 +21,12 @@
     if (!f || rolling) return;
     rolling = true;
     try {
-      await fetch(`/table/${tableId}/roll`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formula: f, private: isPrivate }),
+      await rollDice({
+        tableId,
+        formula: f,
+        private: isPrivate,
+        playerName: role === "DM" ? "DM" : player!.name,
+        playerId: role === "DM" ? null : player!.id,
       });
       formula = "";
     } finally {
