@@ -1,6 +1,15 @@
 import { query } from "$app/server";
 import { getState, getTableEmitter, trackConnection } from "$lib/server/table-state.js";
 
+function isPrivateDiceRoll(delta: DeltaEvent, role: string): boolean {
+  return delta.type === "dice:rolled" && delta.roll.private && role !== "DM";
+}
+
+function stateForRole(state: BoardState, role: string): BoardState {
+  if (role === "DM") return state;
+  return { ...state, rollHistory: state.rollHistory.filter((r) => !r.private) };
+}
+
 export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<
   BoardState | DeltaEvent
 > {
@@ -12,7 +21,7 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   let notify: (() => void) | null = null;
 
   const handler = (delta: DeltaEvent) => {
-    if (delta.type === "dice:rolled" && delta.roll.private && role !== "DM") return;
+    if (isPrivateDiceRoll(delta, role)) return;
     queue.push(delta);
     const resolve = notify;
     notify = null;
@@ -25,12 +34,7 @@ export const boardLive = query.live("unchecked", async function* (arg: string): 
   const disconnect = trackConnection(tableId, role);
 
   try {
-    const state = await getState(tableId);
-    const visibleState: BoardState =
-      role !== "DM"
-        ? { ...state, rollHistory: state.rollHistory.filter((r) => !r.private) }
-        : state;
-    yield visibleState;
+    yield stateForRole(await getState(tableId), role);
 
     while (true) {
       if (queue.length === 0) {

@@ -12,15 +12,15 @@
   } = $props();
 
   const visibleRolls = $derived(
-    [...rollHistory]
-      .filter((r) => !r.private || role === "DM")
-      .reverse(),
+    rollHistory.filter((r) => !r.private || role === "DM").toReversed(),
   );
 
   function formatBreakdown(roll: DiceRoll): string {
     const parts = roll.dice.join(" + ");
     if (roll.modifier === 0) return parts;
-    return roll.modifier > 0 ? `${parts} + ${roll.modifier}` : `${parts} - ${Math.abs(roll.modifier)}`;
+    return roll.modifier > 0
+      ? `${parts} + ${roll.modifier}`
+      : `${parts} - ${Math.abs(roll.modifier)}`;
   }
 </script>
 
