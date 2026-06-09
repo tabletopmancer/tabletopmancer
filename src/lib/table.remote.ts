@@ -60,7 +60,11 @@ export const placeMap = command(
 export const moveMap = command(
   "unchecked",
   async (arg: { tableId: string; mapId: string; position: Position }) => {
-    await dispatchTableEvent(arg.tableId, { type: "map:moved", id: arg.mapId, position: arg.position });
+    await dispatchTableEvent(arg.tableId, {
+      type: "map:moved",
+      id: arg.mapId,
+      position: arg.position,
+    });
   },
 );
 
@@ -71,7 +75,11 @@ export const removeMap = command("unchecked", async (arg: { tableId: string; map
 export const updateFog = command(
   "unchecked",
   async (arg: { tableId: string; mapId: string; patch: FogPatch }) => {
-    await dispatchTableEvent(arg.tableId, { type: "fog:updated", mapId: arg.mapId, patch: arg.patch });
+    await dispatchTableEvent(arg.tableId, {
+      type: "fog:updated",
+      mapId: arg.mapId,
+      patch: arg.patch,
+    });
   },
 );
 
@@ -178,7 +186,10 @@ export const actOnPlayer = command(
       revoke: "player:revoked",
     } as const;
 
-    await dispatchTableEvent(arg.tableId, { type: actionEvents[arg.action], playerId: arg.playerId });
+    await dispatchTableEvent(arg.tableId, {
+      type: actionEvents[arg.action],
+      playerId: arg.playerId,
+    });
   },
 );
 
