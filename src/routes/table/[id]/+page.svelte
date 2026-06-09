@@ -9,6 +9,7 @@
   import RollHistory from "$lib/components/RollHistory.svelte";
   import Table from "$lib/components/Table.svelte";
   import { applyDelta } from "$lib/apply-delta.js";
+  import { activateInitiative } from "$lib/initiative.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -137,11 +138,7 @@
           aria-label="Toggle initiative tracker"
           onclick={async () => {
             if (!boardState.initiative) {
-              await fetch(`/table/${data.tableId}/initiative`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "activate" }),
-              });
+              await activateInitiative(data.tableId);
             }
             showInitiative = !showInitiative;
           }}

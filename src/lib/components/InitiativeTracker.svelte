@@ -1,5 +1,11 @@
 <script lang="ts">
   import { Minus, Plus, Trash2, X } from "@lucide/svelte";
+  import {
+    addNpcEntry,
+    adjustTurn,
+    deactivateInitiative,
+    removeInitiativeEntry,
+  } from "$lib/initiative.remote";
 
   let {
     tracker,
@@ -17,26 +23,13 @@
   let npcInitiative = $state("");
   let showAddNpc = $state(false);
 
-  async function act(body: object) {
-    await fetch(`/table/${tableId}/initiative`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-  }
-
   async function addNpc() {
     const initiative = parseInt(npcInitiative);
     if (!npcName.trim() || isNaN(initiative)) return;
-    await act({ action: "add-npc", name: npcName.trim(), initiative });
+    await addNpcEntry({ tableId, name: npcName.trim(), initiative });
     npcName = "";
     npcInitiative = "";
     showAddNpc = false;
-  }
-
-  async function deactivate() {
-    await act({ action: "deactivate" });
-    onclose();
   }
 </script>
 
@@ -51,7 +44,7 @@
       <div class="flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5">
         {#if role === "DM"}
           <button
-            onclick={() => act({ action: "turn", delta: -1 })}
+            onclick={() => adjustTurn({ tableId, delta: -1 })}
             class="text-gray-400 hover:text-gray-100"
             aria-label="Decrement turn"
           >
@@ -63,7 +56,7 @@
         </span>
         {#if role === "DM"}
           <button
-            onclick={() => act({ action: "turn", delta: 1 })}
+            onclick={() => adjustTurn({ tableId, delta: 1 })}
             class="text-gray-400 hover:text-gray-100"
             aria-label="Increment turn"
           >
@@ -104,7 +97,7 @@
             {/if}
             {#if role === "DM"}
               <button
-                onclick={() => act({ action: "remove", tokenId: entry.tokenId })}
+                onclick={() => removeInitiativeEntry({ tableId, tokenId: entry.tokenId })}
                 aria-label="Remove entry"
                 class="text-gray-600 hover:text-red-400"
               >
@@ -155,7 +148,10 @@
       {/if}
 
       <button
-        onclick={deactivate}
+        onclick={async () => {
+          await deactivateInitiative(tableId);
+          onclose();
+        }}
         class="w-full rounded bg-red-900/50 py-1.5 text-xs text-red-300 hover:bg-red-900 hover:text-red-100"
       >
         Deactivate &amp; Reset
