@@ -11,7 +11,8 @@
     "format:check": "oxfmt --check",
     "lint": "oxlint src",
     "analyze": "fallow",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@lucide/svelte": "^1.17.0",
@@ -26,6 +27,8 @@
     "fallow": "^2.89.0",
     "fs-extra": "^11.3.5",
     "glob": "^13.0.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "mime": "^4.1.0",
     "oxfmt": "^0.53.0",
     "oxlint": "^1.68.0",
@@ -41,5 +44,9 @@
     "node": ">=24",
     "pnpm": ">=11"
   },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916",
+  "lint-staged": {
+    "*.{ts,js,svelte,css}": "oxfmt --write",
+    "*.{ts,js,svelte}": "oxlint"
+  }
 }
