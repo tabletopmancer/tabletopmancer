@@ -1,9 +1,11 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { Link, Rss, UserCog, UserPlus, X } from "@lucide/svelte";
+  import { History, Link, Rss, UserCog, UserPlus, X } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
+  import DiceRoller from "$lib/components/DiceRoller.svelte";
   import PlayerManagement from "$lib/components/PlayerManagement.svelte";
+  import RollHistory from "$lib/components/RollHistory.svelte";
   import Table from "$lib/components/Table.svelte";
   import { applyDelta } from "$lib/apply-delta.js";
   import { boardLive } from "./board.remote";
@@ -20,6 +22,7 @@
 
   let showPlayerManagement = $state(false);
   let showInviteLink = $state(false);
+  let showRollHistory = $state(false);
   let inviteCopied = $state(false);
 
   const inviteUrl = $derived(
@@ -82,7 +85,19 @@
   <Table {boardState} role={data.role} player={data.player} tableId={data.tableId} />
 
   {#if data.role === "DM"}
-    <ul class="fixed top-0 mb-6 flex w-full justify-end gap-4 p-4" role="navigation">
+    <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
+      <li>
+        <DiceRoller tableId={data.tableId} role={data.role} />
+      </li>
+      <li>
+        <button
+          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          aria-label="Toggle roll history"
+          onclick={() => (showRollHistory = !showRollHistory)}
+        >
+          <History size={20} />
+        </button>
+      </li>
       <li>
         <button class="cursor-pointer" aria-label="Open the session">
           <Rss />
@@ -152,6 +167,37 @@
         tableId={data.tableId}
         players={boardState.players}
         onclose={() => (showPlayerManagement = false)}
+      />
+    {/if}
+
+    {#if showRollHistory}
+      <RollHistory
+        rollHistory={boardState.rollHistory}
+        role={data.role}
+        onclose={() => (showRollHistory = false)}
+      />
+    {/if}
+  {/if}
+
+  {#if data.role === "PLAYER"}
+    <div
+      class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg"
+    >
+      <DiceRoller tableId={data.tableId} role={data.role} />
+      <button
+        class="cursor-pointer text-gray-300 hover:text-gray-100"
+        aria-label="Toggle roll history"
+        onclick={() => (showRollHistory = !showRollHistory)}
+      >
+        <History size={18} />
+      </button>
+    </div>
+
+    {#if showRollHistory}
+      <RollHistory
+        rollHistory={boardState.rollHistory}
+        role={data.role}
+        onclose={() => (showRollHistory = false)}
       />
     {/if}
   {/if}
