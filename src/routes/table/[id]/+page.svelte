@@ -20,6 +20,24 @@
     players: [],
   });
 
+  let pings = $state<Array<{ id: string; position: Position }>>([]);
+
+  function addPing(position: Position) {
+    const id = crypto.randomUUID();
+    pings.push({ id, position });
+    setTimeout(() => {
+      pings = pings.filter((p) => p.id !== id);
+    }, 2000);
+  }
+
+  async function sendPing(position: Position) {
+    await fetch(`/table/${data.tableId}/ping`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ position }),
+    });
+  }
+
   let showPlayerManagement = $state(false);
   let showInviteLink = $state(false);
   let showRollHistory = $state(false);
@@ -54,6 +72,10 @@
       boardState = value;
       return;
     }
+    if (value.type === "ping") {
+      addPing(value.position);
+      return;
+    }
     applyDelta(boardState, value);
     if (isOwnRevoke(value, data.player)) {
       await goto(`/join/${data.tableId}`);
@@ -82,7 +104,14 @@
 <main
   class="h-screen w-screen bg-gradient-to-br from-blue-800 via-violet-900 to-gray-800 text-gray-100"
 >
-  <Table {boardState} role={data.role} player={data.player} tableId={data.tableId} />
+  <Table
+    {boardState}
+    role={data.role}
+    player={data.player}
+    tableId={data.tableId}
+    {pings}
+    onping={sendPing}
+  />
 
   {#if data.role === "DM"}
     <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">

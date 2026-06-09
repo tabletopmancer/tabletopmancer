@@ -73,7 +73,7 @@
     const { event: srcEvent } = event.detail;
     srcEvent.preventDefault();
 
-    if (srcEvent.button === MOUSE_BUTTON_LEFT) {
+    if (srcEvent.button === MOUSE_BUTTON_LEFT && !srcEvent.altKey) {
       grabbing = true;
       grabOffset = [event.detail.x - position[0], event.detail.y - position[1]];
     }

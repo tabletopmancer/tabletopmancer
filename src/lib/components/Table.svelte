@@ -2,6 +2,7 @@
   import { dropzone } from "$lib/actions/drag-n-drop.js";
   import Board from "./Board.svelte";
   import AssetNode from "./Board/Asset.svelte";
+  import PingRipple from "./Board/Ping.svelte";
   import TokenNode from "./Board/Token.svelte";
 
   type View = {
@@ -19,11 +20,15 @@
     role,
     player,
     tableId,
+    pings = [],
+    onping,
   }: {
     boardState: BoardState;
     role: "DM" | "PLAYER";
     player: Player | null;
     tableId: string;
+    pings?: Array<{ id: string; position: Position }>;
+    onping?: (position: Position) => void;
   } = $props();
 
   let view = $state<View>({});
@@ -97,15 +102,33 @@
       body: JSON.stringify({ owner: ownerId }),
     });
   }
+
+  function handleBoardClick(event: MouseEvent) {
+    if (!event.altKey) return;
+    event.preventDefault();
+    const pos = board?.screenToBoard(event.clientX, event.clientY);
+    if (pos) onping?.(pos);
+  }
 </script>
 
-<div role="region" aria-roledescription="Game board" class="h-full w-full" use:dropzone={onDrop}>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div
+  role="region"
+  aria-roledescription="Game board"
+  class="h-full w-full"
+  use:dropzone={onDrop}
+  onclick={handleBoardClick}
+>
   <Board bind:this={board}>
     {#each assets as asset}
       <AssetNode data={asset} />
     {/each}
     {#each boardState.tokens as token (token.id)}
       <TokenNode {token} {tableId} {role} {player} onrightclick={handleTokenRightClick} />
+    {/each}
+    {#each pings as ping (ping.id)}
+      <PingRipple position={ping.position} />
     {/each}
   </Board>
 </div>
