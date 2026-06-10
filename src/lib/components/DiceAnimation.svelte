@@ -61,6 +61,53 @@
   const LIGHT: Vec3 = normalize([0.4, 1.0, 0.6]);
   const FACE_BASE: Vec3 = [232, 213, 183];
 
+  // Physics helpers at module level to keep the animation loop simple
+
+  function applyFloorBounce(die: AnimDie, dt: number, floor: number, width: number): void {
+    die.vy += GRAVITY * dt;
+    die.px += die.vx * dt;
+    die.py += die.vy * dt;
+    if (die.py >= floor) {
+      die.py = floor;
+      const rest = Math.max(0.08, RESTITUTION - die.bounces * 0.12);
+      die.vy = -Math.abs(die.vy) * rest;
+      die.vx *= 0.82;
+      die.wrx *= 0.5;
+      die.wry *= 0.5;
+      die.wrz *= 0.5;
+      die.bounces++;
+    }
+    die.rx += die.wrx * dt;
+    die.ry += die.wry * dt;
+    die.rz += die.wrz * dt;
+    const wall = HALF + 10;
+    if (die.px < wall) {
+      die.px = wall;
+      die.vx = Math.abs(die.vx) * 0.7;
+    }
+    if (die.px > width - wall) {
+      die.px = width - wall;
+      die.vx = -Math.abs(die.vx) * 0.7;
+    }
+  }
+
+  function applySettle(die: AnimDie, dt: number, settleT: number, floor: number): void {
+    const decayRate = 2.8 + settleT * 9;
+    die.wrx *= Math.max(0, 1 - decayRate * dt);
+    die.wry *= Math.max(0, 1 - decayRate * dt);
+    die.wrz *= Math.max(0, 1 - decayRate * dt);
+    if (settleT > 0.25) {
+      const progress = Math.min(1, (settleT - 0.25) / 0.75);
+      const lerpRate = progress * progress * 0.12;
+      die.rx += (die.targetRx - die.rx) * lerpRate;
+      die.rz += (die.targetRz - die.rz) * lerpRate;
+      if (die.py >= floor - 2) {
+        die.vy *= Math.max(0, 1 - progress * 0.3);
+        die.vx *= Math.max(0, 1 - progress * 0.15);
+      }
+    }
+  }
+
   let { roll }: { roll: DiceRoll | null } = $props();
 
   let canvas: HTMLCanvasElement | undefined = $state();
@@ -76,16 +123,15 @@
 
   function trigger(r: DiceRoll) {
     if (rafId) cancelAnimationFrame(rafId);
-    visible = true;
 
     const MAX = Math.min(r.dice.length, 5);
     const spacing = window.innerWidth / (MAX + 1);
 
-    const dice: AnimDie[] = r.dice.slice(0, MAX).map((result, i) => {
+    const dice: AnimDie[] = r.dice.slice(0, MAX).map((result, idx) => {
       const faceTarget = ((result - 1) % 6) + 1;
       const [targetRx, targetRz] = FACE_UP[faceTarget];
       return {
-        px: spacing * (i + 1),
+        px: spacing * (idx + 1),
         py: -50 - Math.random() * 80,
         vx: (Math.random() - 0.5) * 120,
         vy: 220 + Math.random() * 160,
@@ -104,89 +150,30 @@
 
     let startTs = 0;
     let lastTs = 0;
-    let dimsSet = false;
+
+    // canvas is always in the DOM (hidden attribute), so it's safe to size it now
+    visible = true;
+    canvas!.width = window.innerWidth;
+    canvas!.height = window.innerHeight;
 
     function frame(ts: number) {
-      if (!startTs) {
-        startTs = ts;
-        lastTs = ts;
-      }
       const elapsed = ts - startTs;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
 
-      if (!canvas) {
-        rafId = requestAnimationFrame(frame);
-        return;
-      }
-
-      if (!dimsSet) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        dimsSet = true;
-      }
-
-      const W = canvas.width;
-      const H = canvas.height;
+      const { width: W, height: H } = canvas!;
       const FLOOR = H * 0.6;
+      const settleT = Math.min(1, Math.max(0, elapsed - SETTLE_START) / (ANIM_END - SETTLE_START));
 
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas!.getContext("2d")!;
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "rgba(0,0,0,0.18)";
       ctx.fillRect(0, 0, W, H);
 
-      const settleT =
-        elapsed >= SETTLE_START
-          ? Math.min(1, (elapsed - SETTLE_START) / (ANIM_END - SETTLE_START))
-          : 0;
-
-      for (const d of dice) {
-        d.vy += GRAVITY * dt;
-        d.px += d.vx * dt;
-        d.py += d.vy * dt;
-
-        if (d.py >= FLOOR) {
-          d.py = FLOOR;
-          const rest = Math.max(0.08, RESTITUTION - d.bounces * 0.12);
-          d.vy = -Math.abs(d.vy) * rest;
-          d.vx *= 0.82;
-          d.wrx *= 0.5;
-          d.wry *= 0.5;
-          d.wrz *= 0.5;
-          d.bounces++;
-        }
-
-        const wall = HALF + 10;
-        if (d.px < wall) {
-          d.px = wall;
-          d.vx = Math.abs(d.vx) * 0.7;
-        }
-        if (d.px > W - wall) {
-          d.px = W - wall;
-          d.vx = -Math.abs(d.vx) * 0.7;
-        }
-
-        d.rx += d.wrx * dt;
-        d.ry += d.wry * dt;
-        d.rz += d.wrz * dt;
-
-        const decayRate = 2.8 + settleT * 9;
-        d.wrx *= Math.max(0, 1 - decayRate * dt);
-        d.wry *= Math.max(0, 1 - decayRate * dt);
-        d.wrz *= Math.max(0, 1 - decayRate * dt);
-
-        if (settleT > 0.25) {
-          const st = Math.min(1, (settleT - 0.25) / 0.75);
-          const lerpT = st * st * 0.12;
-          d.rx += (d.targetRx - d.rx) * lerpT;
-          d.rz += (d.targetRz - d.rz) * lerpT;
-          if (d.py >= FLOOR - 2) {
-            d.vy *= Math.max(0, 1 - st * 0.3);
-            d.vx *= Math.max(0, 1 - st * 0.15);
-          }
-        }
-
-        drawDie(ctx, d);
+      for (const die of dice) {
+        applyFloorBounce(die, dt, FLOOR, W);
+        applySettle(die, dt, settleT, FLOOR);
+        drawDie(ctx, die);
       }
 
       if (elapsed < ANIM_END) {
@@ -197,24 +184,29 @@
       }
     }
 
-    rafId = requestAnimationFrame(frame);
+    // Seed timestamps on the first tick, then hand off to the main loop
+    rafId = requestAnimationFrame((ts) => {
+      startTs = ts;
+      lastTs = ts;
+      rafId = requestAnimationFrame(frame);
+    });
   }
 
-  function rotX(v: Vec3, a: number): Vec3 {
-    const c = Math.cos(a),
-      s = Math.sin(a);
+  function rotX(v: Vec3, angle: number): Vec3 {
+    const c = Math.cos(angle),
+      s = Math.sin(angle);
     return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c];
   }
 
-  function rotY(v: Vec3, a: number): Vec3 {
-    const c = Math.cos(a),
-      s = Math.sin(a);
+  function rotY(v: Vec3, angle: number): Vec3 {
+    const c = Math.cos(angle),
+      s = Math.sin(angle);
     return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
   }
 
-  function rotZ(v: Vec3, a: number): Vec3 {
-    const c = Math.cos(a),
-      s = Math.sin(a);
+  function rotZ(v: Vec3, angle: number): Vec3 {
+    const c = Math.cos(angle),
+      s = Math.sin(angle);
     return [v[0] * c - v[1] * s, v[0] * s + v[1] * c, v[2]];
   }
 
@@ -237,56 +229,54 @@
     ]);
   }
 
-  function drawDie(ctx: CanvasRenderingContext2D, d: AnimDie) {
+  function drawDie(ctx: CanvasRenderingContext2D, die: AnimDie) {
     // Die-rotated vertices (no view tilt) — used for lighting normals
-    const dverts = VERTS.map((v) => rotZ(rotY(rotX(v, d.rx), d.ry), d.rz));
+    const dverts = VERTS.map((v) => rotZ(rotY(rotX(v, die.rx), die.ry), die.rz));
     // View-tilted vertices — used for projection
     const tverts = dverts.map((v) => rotX(v, VIEW_RX));
 
     const pverts = tverts.map((v) => {
       const dz = FOCAL - v[2];
       const scale = (FOCAL / dz) * HALF;
-      return [v[0] * scale + d.px, -v[1] * scale + d.py] as [number, number];
+      return [v[0] * scale + die.px, -v[1] * scale + die.py] as [number, number];
     });
 
-    const sorted = FACES.map((f) => {
-      const avgZ = f.vi.reduce((s, i) => s + tverts[i][2], 0) / 4;
-      return { ...f, avgZ };
-    }).sort((a, b) => a.avgZ - b.avgZ);
+    const sorted = FACES.map((face) => {
+      const avgZ = face.vi.reduce((sum, idx) => sum + tverts[idx][2], 0) / 4;
+      return { ...face, avgZ };
+    }).toSorted((a, b) => a.avgZ - b.avgZ);
 
-    for (const f of sorted) {
-      const pts = f.vi.map((i) => pverts[i]);
-      const n = faceNormal(f.vi.map((i) => dverts[i]));
-      const diffuse = Math.max(0, dot(n, LIGHT));
-      const brightness = 0.42 + 0.58 * diffuse;
-      const r = Math.round(FACE_BASE[0] * brightness);
-      const g = Math.round(FACE_BASE[1] * brightness);
-      const b = Math.round(FACE_BASE[2] * brightness);
+    for (const face of sorted) {
+      const pts = face.vi.map((idx) => pverts[idx]);
+      const n = faceNormal(face.vi.map((idx) => dverts[idx]));
+      const brightness = 0.42 + 0.58 * Math.max(0, dot(n, LIGHT));
+      const red = Math.round(FACE_BASE[0] * brightness);
+      const grn = Math.round(FACE_BASE[1] * brightness);
+      const blu = Math.round(FACE_BASE[2] * brightness);
 
       ctx.beginPath();
       ctx.moveTo(pts[0][0], pts[0][1]);
       for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k][0], pts[k][1]);
       ctx.closePath();
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillStyle = `rgb(${red},${grn},${blu})`;
       ctx.fill();
       ctx.strokeStyle = "rgba(80,40,10,0.7)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
       // Show result number on clearly front-facing faces
-      if (f.avgZ > 0.1) {
-        const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-        const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+      if (face.avgZ > 0.1) {
+        const cx = pts.reduce((sum, pt) => sum + pt[0], 0) / pts.length;
+        const cy = pts.reduce((sum, pt) => sum + pt[1], 0) / pts.length;
         ctx.fillStyle = "rgba(60,20,0,0.85)";
         ctx.font = `bold ${Math.round(HALF * 0.9)}px serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(d.result), cx, cy);
+        ctx.fillText(String(die.result), cx, cy);
       }
     }
   }
 </script>
 
-{#if visible}
-  <canvas bind:this={canvas} class="pointer-events-none fixed inset-0 z-50"></canvas>
-{/if}
+<canvas bind:this={canvas} hidden={!visible} class="pointer-events-none fixed inset-0 z-50"
+></canvas>

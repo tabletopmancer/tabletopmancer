@@ -27,6 +27,12 @@
   let pings = $state<Array<{ id: string; position: Position }>>([]);
   let animRoll = $state<DiceRoll | null>(null);
 
+  function maybeTriggerDiceAnimation(event: TableEvent): void {
+    if (event.type === "dice:rolled") {
+      animRoll = event.roll;
+    }
+  }
+
   function addPing(position: Position) {
     const id = crypto.randomUUID();
     pings.push({ id, position });
@@ -82,9 +88,7 @@
       addPing(value.position);
       return;
     }
-    if (value.type === "dice:rolled") {
-      animRoll = value.roll;
-    }
+    maybeTriggerDiceAnimation(value);
     applyTableEvent(boardState, value);
     if (isOwnRevoke(value, data.player)) {
       await goto(`/join/${data.tableId}`);
