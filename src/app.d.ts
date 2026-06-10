@@ -94,6 +94,7 @@ declare global {
     initiative: InitiativeTracker | null;
     rollHistory: DiceRoll[];
     players: Player[];
+    paused: boolean;
   };
 
   type TableEvent =
@@ -111,7 +112,9 @@ declare global {
     | { type: "player:joined"; player: Player }
     | { type: "player:approved"; playerId: string }
     | { type: "player:denied"; playerId: string }
-    | { type: "player:revoked"; playerId: string };
+    | { type: "player:revoked"; playerId: string }
+    | { type: "board:paused" }
+    | { type: "board:unpaused" };
 }
 
 export {};

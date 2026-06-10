@@ -1,4 +1,4 @@
-import { command } from "$app/server";
+import { command, getRequestEvent } from "$app/server";
 import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
 import { randomUUID } from "node:crypto";
 
@@ -18,6 +18,9 @@ export const placeToken = command(
 export const moveToken = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string; position: Position }) => {
+    const { locals } = getRequestEvent();
+    const state = await getState(arg.tableId);
+    if (state.paused && locals.role !== "DM") return;
     await dispatchTableEvent(arg.tableId, {
       type: "token:moved",
       id: arg.tokenId,
@@ -25,6 +28,18 @@ export const moveToken = command(
     });
   },
 );
+
+export const pauseBoard = command("unchecked", async (tableId: string) => {
+  const { locals } = getRequestEvent();
+  if (locals.role !== "DM") return;
+  await dispatchTableEvent(tableId, { type: "board:paused" });
+});
+
+export const unpauseBoard = command("unchecked", async (tableId: string) => {
+  const { locals } = getRequestEvent();
+  if (locals.role !== "DM") return;
+  await dispatchTableEvent(tableId, { type: "board:unpaused" });
+});
 
 export const assignTokenOwner = command(
   "unchecked",
