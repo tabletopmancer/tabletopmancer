@@ -19,6 +19,7 @@ function emptyState(): BoardState {
     initiative: null,
     rollHistory: [],
     players: [],
+    paused: false,
   };
 }
 

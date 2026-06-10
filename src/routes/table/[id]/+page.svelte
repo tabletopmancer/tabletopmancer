@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { History, Link, Rss, Swords, UserCog, UserPlus, X } from "@lucide/svelte";
+  import { History, Link, Pause, Play, Rss, Swords, UserCog, UserPlus, X } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
   import DiceAnimation from "$lib/components/DiceAnimation.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
@@ -11,7 +11,7 @@
   import Table from "$lib/components/Table.svelte";
   import { applyTableEvent } from "$lib/apply-table-event.js";
   import { activateInitiative } from "$lib/initiative.remote";
-  import { pingTable } from "$lib/table.remote";
+  import { pauseBoard, pingTable, unpauseBoard } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -22,6 +22,7 @@
     initiative: null,
     rollHistory: [],
     players: [],
+    paused: false,
   });
 
   let pings = $state<Array<{ id: string; position: Position }>>([]);
@@ -157,6 +158,27 @@
         </button>
       </li>
       <li>
+        <button
+          class="cursor-pointer {boardState.paused
+            ? 'text-amber-300'
+            : 'text-gray-300 hover:text-gray-100'}"
+          aria-label={boardState.paused ? "Unpause game" : "Pause game"}
+          onclick={async () => {
+            if (boardState.paused) {
+              await unpauseBoard(data.tableId);
+            } else {
+              await pauseBoard(data.tableId);
+            }
+          }}
+        >
+          {#if boardState.paused}
+            <Play size={20} />
+          {:else}
+            <Pause size={20} />
+          {/if}
+        </button>
+      </li>
+      <li>
         <button class="cursor-pointer" aria-label="Open the session">
           <Rss />
         </button>
@@ -244,6 +266,14 @@
         onclose={() => (showInitiative = false)}
       />
     {/if}
+  {/if}
+
+  {#if data.role === "PLAYER" && boardState.paused}
+    <div
+      class="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg"
+    >
+      Game paused by DM
+    </div>
   {/if}
 
   {#if data.role === "PLAYER"}

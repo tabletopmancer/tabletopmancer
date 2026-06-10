@@ -59,6 +59,12 @@ const handlers = {
     const p = state.players.find((p) => p.id === event.playerId);
     if (p) p.status = "revoked";
   },
+  "board:paused": (state) => {
+    state.paused = true;
+  },
+  "board:unpaused": (state) => {
+    state.paused = false;
+  },
 } satisfies { [K in TableEvent["type"]]: Handler<K> };
 
 export function applyTableEvent(state: BoardState, event: TableEvent): void {
