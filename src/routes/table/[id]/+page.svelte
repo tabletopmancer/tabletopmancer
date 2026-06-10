@@ -3,6 +3,7 @@
   import { goto } from "$app/navigation";
   import { History, Link, Rss, Swords, UserCog, UserPlus, X } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
+  import DiceAnimation from "$lib/components/DiceAnimation.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
   import InitiativeTracker from "$lib/components/InitiativeTracker.svelte";
   import PlayerManagement from "$lib/components/PlayerManagement.svelte";
@@ -24,6 +25,13 @@
   });
 
   let pings = $state<Array<{ id: string; position: Position }>>([]);
+  let animRoll = $state<DiceRoll | null>(null);
+
+  function maybeTriggerDiceAnimation(event: TableEvent): void {
+    if (event.type === "dice:rolled") {
+      animRoll = event.roll;
+    }
+  }
 
   function addPing(position: Position) {
     const id = crypto.randomUUID();
@@ -80,6 +88,7 @@
       addPing(value.position);
       return;
     }
+    maybeTriggerDiceAnimation(value);
     applyTableEvent(boardState, value);
     if (isOwnRevoke(value, data.player)) {
       await goto(`/join/${data.tableId}`);
@@ -283,4 +292,6 @@
   {#if data.role === "DM"}
     <AssetDrawer assets={data.assets} />
   {/if}
+
+  <DiceAnimation roll={animRoll} />
 </main>
