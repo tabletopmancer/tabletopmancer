@@ -1,5 +1,6 @@
 import { applyTableEvent } from "$lib/apply-table-event.js";
 import { getDb } from "$lib/server/db.js";
+import { persistTableEvent } from "$lib/server/persist-table-event.js";
 import { EventEmitter } from "node:events";
 
 export { applyTableEvent };
@@ -81,131 +82,6 @@ function loadStateFromDb(tableId: string): BoardState {
   return { tokens, maps, initiative, rollHistory, players, paused };
 }
 
-function persistEvent(tableId: string, event: TableEvent): void {
-  const db = getDb(tableId);
-
-  switch (event.type) {
-    case "token:placed": {
-      const t = event.token;
-      db.prepare(
-        "INSERT OR REPLACE INTO tokens (id, name, x, y, image_url, owner, size) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      ).run(
-        t.id,
-        t.name,
-        t.position.x,
-        t.position.y,
-        t.imageUrl ?? null,
-        t.owner ?? null,
-        t.size ?? null,
-      );
-      break;
-    }
-    case "token:moved":
-      db.prepare("UPDATE tokens SET x = ?, y = ? WHERE id = ?").run(
-        event.position.x,
-        event.position.y,
-        event.id,
-      );
-      break;
-    case "token:removed":
-      db.prepare("DELETE FROM tokens WHERE id = ?").run(event.id);
-      break;
-    case "token:owner-assigned":
-      db.prepare("UPDATE tokens SET owner = ? WHERE id = ?").run(event.owner ?? null, event.id);
-      break;
-    case "map:placed": {
-      const m = event.map;
-      db.prepare("INSERT OR REPLACE INTO maps (id, asset_url, x, y) VALUES (?, ?, ?, ?)").run(
-        m.id,
-        m.assetUrl,
-        m.position.x,
-        m.position.y,
-      );
-      if (m.fog?.length) {
-        const ins = db.prepare(
-          "INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)",
-        );
-        for (const p of m.fog) ins.run(m.id, p.mode, p.x, p.y, p.radius);
-      }
-      break;
-    }
-    case "map:removed":
-      db.prepare("DELETE FROM maps WHERE id = ?").run(event.id);
-      break;
-    case "map:moved":
-      db.prepare("UPDATE maps SET x = ?, y = ? WHERE id = ?").run(
-        event.position.x,
-        event.position.y,
-        event.id,
-      );
-      break;
-    case "fog:updated": {
-      const p = event.patch;
-      db.prepare("INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)").run(
-        event.mapId,
-        p.mode,
-        p.x,
-        p.y,
-        p.radius,
-      );
-      break;
-    }
-    case "dice:rolled": {
-      const r = event.roll;
-      db.prepare(
-        "INSERT OR REPLACE INTO rolls (id, player, formula, dice, modifier, total, private, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ).run(
-        r.id,
-        r.player,
-        r.formula,
-        JSON.stringify(r.dice),
-        r.modifier,
-        r.total,
-        r.private ? 1 : 0,
-        r.timestamp,
-      );
-      break;
-    }
-    case "initiative:updated":
-      if (event.tracker) {
-        db.prepare(
-          "INSERT OR REPLACE INTO initiative (id, active, entries, turn) VALUES (1, ?, ?, ?)",
-        ).run(
-          event.tracker.active ? 1 : 0,
-          JSON.stringify(event.tracker.entries),
-          event.tracker.turn,
-        );
-      } else {
-        db.prepare("DELETE FROM initiative WHERE id = 1").run();
-      }
-      break;
-    case "player:joined":
-      db.prepare("INSERT OR IGNORE INTO players (id, name, status) VALUES (?, ?, ?)").run(
-        event.player.id,
-        event.player.name,
-        event.player.status,
-      );
-      break;
-    case "player:approved":
-      db.prepare("UPDATE players SET status = 'approved' WHERE id = ?").run(event.playerId);
-      break;
-    case "player:denied":
-      db.prepare("UPDATE players SET status = 'denied' WHERE id = ?").run(event.playerId);
-      break;
-    case "player:revoked":
-      db.prepare("UPDATE players SET status = 'revoked' WHERE id = ?").run(event.playerId);
-      break;
-    case "board:paused":
-      db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('paused', 'true')").run();
-      break;
-    case "board:unpaused":
-      db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('paused', 'false')").run();
-      break;
-    case "ping":
-      break;
-  }
-}
-
 function loadState(tableId: string): BoardState {
   const cached = stateCache.get(tableId);
   if (cached) return cached;
@@ -246,6 +122,6 @@ export function trackDmConnection(tableId: string): () => void {
 export async function dispatchTableEvent(tableId: string, event: TableEvent): Promise<void> {
   const state = loadState(tableId);
   applyTableEvent(state, event);
-  persistEvent(tableId, event);
+  persistTableEvent(getDb(tableId), event);
   getTableEmitter(tableId).emit("table-event", event);
 }
