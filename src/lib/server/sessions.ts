@@ -1,24 +1,10 @@
-import { TABLETOPMANCER_HOME } from "$env/static/private";
-import fs from "fs-extra";
-import path from "node:path";
-
-const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
-
-function sessionsPath(tableId: string): string {
-  return path.join(savesDir, tableId, "sessions.json");
-}
-
-async function readSessions(tableId: string): Promise<Record<string, string>> {
-  try {
-    return (await fs.readJSON(sessionsPath(tableId))) as Record<string, string>;
-  } catch {
-    return {};
-  }
-}
+import { getDb } from "$lib/server/db.js";
 
 export async function getSession(tableId: string, token: string): Promise<string | null> {
-  const sessions = await readSessions(tableId);
-  return sessions[token] ?? null;
+  const row = getDb(tableId)
+    .prepare("SELECT player_id FROM sessions WHERE token = ?")
+    .get(token) as any;
+  return (row?.player_id as string) ?? null;
 }
 
 export async function createSession(
@@ -26,9 +12,7 @@ export async function createSession(
   token: string,
   playerId: string,
 ): Promise<void> {
-  const filePath = sessionsPath(tableId);
-  await fs.ensureDir(path.dirname(filePath));
-  const sessions = await readSessions(tableId);
-  sessions[token] = playerId;
-  await fs.writeJSON(filePath, sessions, { spaces: 2 });
+  getDb(tableId)
+    .prepare("INSERT OR REPLACE INTO sessions (token, player_id) VALUES (?, ?)")
+    .run(token, playerId);
 }

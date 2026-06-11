@@ -1,27 +1,13 @@
 import { applyTableEvent } from "$lib/apply-table-event.js";
-import { TABLETOPMANCER_HOME } from "$env/static/private";
-import fs from "fs-extra";
+import { getDb } from "$lib/server/db.js";
+import { persistTableEvent } from "$lib/server/persist-table-event.js";
 import { EventEmitter } from "node:events";
-import path from "node:path";
 
 export { applyTableEvent };
-
-const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 const stateCache = new Map<string, BoardState>();
 const emitters = new Map<string, EventEmitter>();
 const dmConnections = new Map<string, number>();
-
-function emptyState(): BoardState {
-  return {
-    tokens: [],
-    maps: [],
-    initiative: null,
-    rollHistory: [],
-    players: [],
-    paused: false,
-  };
-}
 
 export function getTableEmitter(tableId: string): EventEmitter {
   let emitter = emitters.get(tableId);
@@ -33,29 +19,75 @@ export function getTableEmitter(tableId: string): EventEmitter {
   return emitter;
 }
 
-async function loadState(tableId: string): Promise<BoardState> {
-  const cached = stateCache.get(tableId);
-  if (cached) return cached;
+function loadStateFromDb(tableId: string): BoardState {
+  const db = getDb(tableId);
 
-  const statePath = path.join(savesDir, tableId, "state.json");
+  const tokenRows = db.prepare("SELECT * FROM tokens").all() as any[];
+  const tokens: Token[] = tokenRows.map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    position: { x: r.x as number, y: r.y as number },
+    ...(r.image_url != null ? { imageUrl: r.image_url as string } : {}),
+    ...(r.owner != null ? { owner: r.owner as string } : {}),
+    ...(r.size != null ? { size: r.size as number } : {}),
+  }));
 
-  try {
-    const state = (await fs.readJSON(statePath)) as BoardState;
-    stateCache.set(tableId, state);
-    return state;
-  } catch {
-    const state = emptyState();
-    stateCache.set(tableId, state);
-    return state;
-  }
+  const mapRows = db.prepare("SELECT * FROM maps").all() as any[];
+  const fogRows = db.prepare("SELECT * FROM fog_patches ORDER BY id").all() as any[];
+  const maps: BoardMap[] = mapRows.map((r) => ({
+    id: r.id as string,
+    assetUrl: r.asset_url as string,
+    position: { x: r.x as number, y: r.y as number },
+    fog: (fogRows as any[])
+      .filter((f) => f.map_id === r.id)
+      .map((f) => ({
+        mode: f.mode as "reveal" | "hide",
+        x: f.x as number,
+        y: f.y as number,
+        radius: f.radius as number,
+      })),
+  }));
+
+  const rollRows = db.prepare("SELECT * FROM rolls ORDER BY timestamp").all() as any[];
+  const rollHistory: DiceRoll[] = rollRows.map((r) => ({
+    id: r.id as string,
+    player: r.player as string,
+    formula: r.formula as string,
+    dice: JSON.parse(r.dice as string) as number[],
+    modifier: r.modifier as number,
+    total: r.total as number,
+    private: Boolean(r.private),
+    timestamp: r.timestamp as number,
+  }));
+
+  const initRow = db.prepare("SELECT * FROM initiative WHERE id = 1").get() as any;
+  const initiative: InitiativeTracker | null = initRow
+    ? {
+        active: Boolean(initRow.active),
+        entries: JSON.parse(initRow.entries as string) as InitiativeEntry[],
+        turn: initRow.turn as number,
+      }
+    : null;
+
+  const playerRows = db.prepare("SELECT * FROM players").all() as any[];
+  const players: Player[] = playerRows.map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    status: r.status as Player["status"],
+  }));
+
+  const pausedRow = db.prepare("SELECT value FROM board_meta WHERE key = 'paused'").get() as any;
+  const paused = pausedRow?.value === "true";
+
+  return { tokens, maps, initiative, rollHistory, players, paused };
 }
 
-async function persistState(tableId: string): Promise<void> {
-  const state = stateCache.get(tableId);
-  if (!state) return;
-  const statePath = path.join(savesDir, tableId, "state.json");
-  await fs.ensureDir(path.dirname(statePath));
-  await fs.writeJSON(statePath, state, { spaces: 2 });
+function loadState(tableId: string): BoardState {
+  const cached = stateCache.get(tableId);
+  if (cached) return cached;
+  const state = loadStateFromDb(tableId);
+  stateCache.set(tableId, state);
+  return state;
 }
 
 export async function getState(tableId: string): Promise<BoardState> {
@@ -88,8 +120,8 @@ export function trackDmConnection(tableId: string): () => void {
 }
 
 export async function dispatchTableEvent(tableId: string, event: TableEvent): Promise<void> {
-  const state = await loadState(tableId);
+  const state = loadState(tableId);
   applyTableEvent(state, event);
-  await persistState(tableId);
+  persistTableEvent(getDb(tableId), event);
   getTableEmitter(tableId).emit("table-event", event);
 }
