@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"You just pushed to a remote branch. If there is a PR associated with this branch, immediately call mcp__github__subscribe_pr_activity to watch for CI failures and review comments. When CI fails, investigate the job logs and fix the errors automatically without waiting for the user to ask.\"}}'",
+            "statusMessage": "Subscribing to PR activity..."
+          }
+        ]
+      }
+    ]
+  }
+}
