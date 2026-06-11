@@ -44,7 +44,7 @@
     const p = playerState;
     if (!p || p.status !== "pending") return;
 
-    const lq = playerStatus(`${data.tableId}|${p.id}`);
+    const lq = playerStatus(data.tableId);
     const iter = lq[Symbol.asyncIterator]();
 
     (async () => {

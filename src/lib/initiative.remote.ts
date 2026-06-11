@@ -1,4 +1,5 @@
 import { command } from "$app/server";
+import { requireDm } from "$lib/server/auth.js";
 import { dispatchTableEvent, getState } from "$lib/server/table-state.js";
 import { randomUUID } from "node:crypto";
 
@@ -11,6 +12,7 @@ function sortEntries(entries: InitiativeEntry[]): InitiativeEntry[] {
 }
 
 export const activateInitiative = command("unchecked", async (tableId: string) => {
+  requireDm();
   const state = await getState(tableId);
   const entries: InitiativeEntry[] = state.tokens
     .filter((t) => t.owner !== undefined)
@@ -22,12 +24,14 @@ export const activateInitiative = command("unchecked", async (tableId: string) =
 });
 
 export const deactivateInitiative = command("unchecked", async (tableId: string) => {
+  requireDm();
   await dispatchTableEvent(tableId, { type: "initiative:updated", tracker: null });
 });
 
 export const addNpcEntry = command(
   "unchecked",
   async (arg: { tableId: string; name: string; initiative: number }) => {
+    requireDm();
     const state = await getState(arg.tableId);
     if (!state.initiative) return;
     const entry: InitiativeEntry = {
@@ -49,6 +53,7 @@ export const addNpcEntry = command(
 export const removeInitiativeEntry = command(
   "unchecked",
   async (arg: { tableId: string; tokenId: string }) => {
+    requireDm();
     const state = await getState(arg.tableId);
     if (!state.initiative) return;
     await dispatchTableEvent(arg.tableId, {
@@ -62,6 +67,7 @@ export const removeInitiativeEntry = command(
 );
 
 export const adjustTurn = command("unchecked", async (arg: { tableId: string; delta: number }) => {
+  requireDm();
   const state = await getState(arg.tableId);
   if (!state.initiative) return;
   await dispatchTableEvent(arg.tableId, {

@@ -75,7 +75,10 @@ export function getDb(tableId: string): DatabaseSync {
   const cached = dbCache.get(tableId);
   if (cached) return cached;
 
-  const dir = path.join(savesDir, tableId);
+  const dir = path.resolve(savesDir, tableId);
+  if (path.dirname(dir) !== path.resolve(savesDir)) {
+    throw new Error(`Invalid table id: ${tableId}`);
+  }
   fs.ensureDirSync(dir);
 
   const db = new DatabaseSync(path.join(dir, "db.sqlite"));

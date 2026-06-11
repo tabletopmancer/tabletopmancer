@@ -5,11 +5,9 @@
   let {
     tableId,
     role,
-    player,
   }: {
     tableId: string;
     role: "DM" | "PLAYER";
-    player: Player | null;
   } = $props();
 
   let formula = $state("");
@@ -20,12 +18,8 @@
     const f = formula.trim();
     if (!f || rolling) return;
     rolling = true;
-    const playerInfo =
-      role === "DM"
-        ? { playerName: "DM", playerId: null }
-        : { playerName: player!.name, playerId: player!.id };
     try {
-      await rollDice({ tableId, formula: f, private: isPrivate, ...playerInfo });
+      await rollDice({ tableId, formula: f, private: isPrivate });
       formula = "";
     } finally {
       rolling = false;

@@ -43,11 +43,7 @@
   }
 
   async function sendPing(position: Position) {
-    await pingTable({
-      tableId: data.tableId,
-      position,
-      player: data.role === "DM" ? "DM" : data.player!.name,
-    });
+    await pingTable({ tableId: data.tableId, position });
   }
 
   let showPlayerManagement = $state(false);
@@ -98,7 +94,7 @@
 
   $effect(() => {
     const id = page.params.id!;
-    const lq = boardLive(`${id}|${data.role}`);
+    const lq = boardLive(id);
     const iter = lq[Symbol.asyncIterator]();
 
     (async () => {
@@ -130,7 +126,7 @@
   {#if data.role === "DM"}
     <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
       <li>
-        <DiceRoller tableId={data.tableId} role={data.role} player={data.player} />
+        <DiceRoller tableId={data.tableId} role={data.role} />
       </li>
       <li>
         <button
@@ -280,7 +276,7 @@
     <div
       class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg"
     >
-      <DiceRoller tableId={data.tableId} role={data.role} player={data.player} />
+      <DiceRoller tableId={data.tableId} role={data.role} />
       <button
         class="cursor-pointer text-gray-300 hover:text-gray-100"
         aria-label="Toggle roll history"

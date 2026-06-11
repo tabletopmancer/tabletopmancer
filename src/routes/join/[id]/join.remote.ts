@@ -1,4 +1,5 @@
 import { query } from "$app/server";
+import { requireSessionPlayerId } from "$lib/server/auth.js";
 import { getTableEmitter, isDmConnected } from "$lib/server/table-state.js";
 
 type PlayerStatusEvent =
@@ -27,10 +28,8 @@ function enqueueInitialStatus(queue: PlayerStatusEvent[], tableId: string): void
 
 export const playerStatus = query.live(
   "unchecked",
-  async function* (arg: string): AsyncGenerator<PlayerStatusEvent> {
-    const sep = arg.lastIndexOf("|");
-    const tableId = arg.slice(0, sep);
-    const playerId = arg.slice(sep + 1);
+  async function* (tableId: string): AsyncGenerator<PlayerStatusEvent> {
+    const playerId = await requireSessionPlayerId(tableId);
 
     const queue: PlayerStatusEvent[] = [];
     let notify: (() => void) | null = null;
