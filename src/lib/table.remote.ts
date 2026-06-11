@@ -3,10 +3,28 @@ import { requireDm, requireParticipant } from "$lib/server/auth.js";
 import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
 import { error } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
+import * as v from "valibot";
+
+const PositionSchema = v.object({
+  x: v.pipe(v.number(), v.finite()),
+  y: v.pipe(v.number(), v.finite()),
+});
+
+const FogPatchSchema = v.object({
+  mode: v.picklist(["reveal", "hide"]),
+  x: v.pipe(v.number(), v.finite()),
+  y: v.pipe(v.number(), v.finite()),
+  radius: v.pipe(v.number(), v.finite(), v.minValue(0)),
+});
 
 export const placeToken = command(
-  "unchecked",
-  async (arg: { tableId: string; name: string; imageUrl?: string; position: Position }) => {
+  v.object({
+    tableId: v.string(),
+    name: v.pipe(v.string(), v.nonEmpty()),
+    imageUrl: v.optional(v.string()),
+    position: PositionSchema,
+  }),
+  async (arg) => {
     requireDm();
     const token: Token = {
       id: randomUUID(),
@@ -32,8 +50,8 @@ async function playerMayMoveToken(
 }
 
 export const moveToken = command(
-  "unchecked",
-  async (arg: { tableId: string; tokenId: string; position: Position }) => {
+  v.object({ tableId: v.string(), tokenId: v.string(), position: PositionSchema }),
+  async (arg) => {
     const player = await requireParticipant(arg.tableId);
     if (player && !(await playerMayMoveToken(arg.tableId, player, arg.tokenId))) return;
     await dispatchTableEvent(arg.tableId, {
@@ -44,19 +62,19 @@ export const moveToken = command(
   },
 );
 
-export const pauseBoard = command("unchecked", async (tableId: string) => {
+export const pauseBoard = command(v.string(), async (tableId) => {
   requireDm();
   await dispatchTableEvent(tableId, { type: "board:paused" });
 });
 
-export const unpauseBoard = command("unchecked", async (tableId: string) => {
+export const unpauseBoard = command(v.string(), async (tableId) => {
   requireDm();
   await dispatchTableEvent(tableId, { type: "board:unpaused" });
 });
 
 export const assignTokenOwner = command(
-  "unchecked",
-  async (arg: { tableId: string; tokenId: string; owner: string | null }) => {
+  v.object({ tableId: v.string(), tokenId: v.string(), owner: v.nullable(v.string()) }),
+  async (arg) => {
     requireDm();
     await dispatchTableEvent(arg.tableId, {
       type: "token:owner-assigned",
@@ -67,16 +85,16 @@ export const assignTokenOwner = command(
 );
 
 export const removeToken = command(
-  "unchecked",
-  async (arg: { tableId: string; tokenId: string }) => {
+  v.object({ tableId: v.string(), tokenId: v.string() }),
+  async (arg) => {
     requireDm();
     await dispatchTableEvent(arg.tableId, { type: "token:removed", id: arg.tokenId });
   },
 );
 
 export const placeMap = command(
-  "unchecked",
-  async (arg: { tableId: string; assetUrl: string; position: Position }) => {
+  v.object({ tableId: v.string(), assetUrl: v.string(), position: PositionSchema }),
+  async (arg) => {
     requireDm();
     const map: BoardMap = {
       id: randomUUID(),
@@ -89,8 +107,8 @@ export const placeMap = command(
 );
 
 export const moveMap = command(
-  "unchecked",
-  async (arg: { tableId: string; mapId: string; position: Position }) => {
+  v.object({ tableId: v.string(), mapId: v.string(), position: PositionSchema }),
+  async (arg) => {
     requireDm();
     await dispatchTableEvent(arg.tableId, {
       type: "map:moved",
@@ -100,14 +118,17 @@ export const moveMap = command(
   },
 );
 
-export const removeMap = command("unchecked", async (arg: { tableId: string; mapId: string }) => {
-  requireDm();
-  await dispatchTableEvent(arg.tableId, { type: "map:removed", id: arg.mapId });
-});
+export const removeMap = command(
+  v.object({ tableId: v.string(), mapId: v.string() }),
+  async (arg) => {
+    requireDm();
+    await dispatchTableEvent(arg.tableId, { type: "map:removed", id: arg.mapId });
+  },
+);
 
 export const updateFog = command(
-  "unchecked",
-  async (arg: { tableId: string; mapId: string; patch: FogPatch }) => {
+  v.object({ tableId: v.string(), mapId: v.string(), patch: FogPatchSchema }),
+  async (arg) => {
     requireDm();
     await dispatchTableEvent(arg.tableId, {
       type: "fog:updated",
@@ -203,8 +224,8 @@ function buildRoll(
 }
 
 export const rollDice = command(
-  "unchecked",
-  async (arg: { tableId: string; formula: string; private?: boolean }) => {
+  v.object({ tableId: v.string(), formula: v.string(), private: v.optional(v.boolean()) }),
+  async (arg) => {
     const player = await requireParticipant(arg.tableId);
 
     const formula = arg.formula.trim();
@@ -221,8 +242,12 @@ export const rollDice = command(
 );
 
 export const actOnPlayer = command(
-  "unchecked",
-  async (arg: { tableId: string; playerId: string; action: "approve" | "deny" | "revoke" }) => {
+  v.object({
+    tableId: v.string(),
+    playerId: v.string(),
+    action: v.picklist(["approve", "deny", "revoke"]),
+  }),
+  async (arg) => {
     requireDm();
     const state = await getState(arg.tableId);
     if (!state.players.some((p) => p.id === arg.playerId)) return;
@@ -241,8 +266,8 @@ export const actOnPlayer = command(
 );
 
 export const pingTable = command(
-  "unchecked",
-  async (arg: { tableId: string; position: Position }) => {
+  v.object({ tableId: v.string(), position: PositionSchema }),
+  async (arg) => {
     const player = await requireParticipant(arg.tableId);
     const event: TableEvent = {
       type: "ping",

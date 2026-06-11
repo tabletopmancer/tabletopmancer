@@ -77,6 +77,9 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+      valibot:
+        specifier: ^1.4.1
+        version: 1.4.1(typescript@6.0.3)
       vite:
         specifier: ^8.0.16
         version: 8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0)
@@ -1342,6 +1345,14 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
+  valibot@1.4.1:
+    resolution: {integrity: sha512-klCmFTz2jeDluy9RwX+F884TCiogtdBJ/YaxSx1EOBYXa3NXNWj8kR1jjN8rzluwojJVWWaHJ4r1U5LfICnM3g==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   vite@8.0.16:
     resolution: {integrity: sha512-h9bXPmJichP5fLmVQo3PyaGSDE2n3aPuomeAlVRm0JLmt4rY6zmPKd59HYI4LNW8oTK7tlTsuC7l/m7awx9Jcw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -2399,6 +2410,10 @@ snapshots:
   undici-types@7.24.6: {}
 
   universalify@2.0.1: {}
+
+  valibot@1.4.1(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
 
   vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0):
     dependencies:

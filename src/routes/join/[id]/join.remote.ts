@@ -1,6 +1,7 @@
 import { query } from "$app/server";
 import { requireSessionPlayerId } from "$lib/server/auth.js";
 import { getTableEmitter, isDmConnected } from "$lib/server/table-state.js";
+import * as v from "valibot";
 
 type PlayerStatusEvent =
   | { type: "dm:online" }
@@ -27,8 +28,8 @@ function enqueueInitialStatus(queue: PlayerStatusEvent[], tableId: string): void
 }
 
 export const playerStatus = query.live(
-  "unchecked",
-  async function* (tableId: string): AsyncGenerator<PlayerStatusEvent> {
+  v.string(),
+  async function* (tableId): AsyncGenerator<PlayerStatusEvent> {
     const playerId = await requireSessionPlayerId(tableId);
 
     const queue: PlayerStatusEvent[] = [];
