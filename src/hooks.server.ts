@@ -1,4 +1,4 @@
-import { isDmSecret, logDmLoginUrl } from "$lib/server/dm.js";
+import { isDmSession, logDmLoginUrl } from "$lib/server/dm.js";
 import { getSession } from "$lib/server/sessions.js";
 import { getState } from "$lib/server/table-state.js";
 import { error, redirect, type Handle, type RequestEvent } from "@sveltejs/kit";
@@ -31,7 +31,7 @@ async function guardPlayer(event: RequestEvent): Promise<void> {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-  event.locals.role = isDmSecret(event.cookies.get("ttm_dm")) ? "DM" : "PLAYER";
+  event.locals.role = isDmSession(event.cookies.get("ttm_dm")) ? "DM" : "PLAYER";
   event.locals.player = null;
 
   if (event.locals.role !== "DM") await guardPlayer(event);

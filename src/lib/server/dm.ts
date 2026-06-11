@@ -5,33 +5,52 @@ import fs from "fs-extra";
 import crypto from "node:crypto";
 import path from "node:path";
 
-const secretFile = path.join(TABLETOPMANCER_HOME, "dm-secret");
+// Holds one sha256 hash per line, one for each issued DM session cookie.
+// Deleting the file (or a line) revokes the corresponding session.
+const sessionsFile = path.join(TABLETOPMANCER_HOME, "dm-sessions");
 
-function loadOrCreateSecret(): string {
-  try {
-    const existing = fs.readFileSync(secretFile, "utf8").trim();
-    if (existing) return existing;
-  } catch {
-    // first run — generate below
-  }
-  const secret = crypto.randomBytes(32).toString("hex");
-  fs.outputFileSync(secretFile, `${secret}\n`, { mode: 0o600 });
-  return secret;
-}
-
-const dmSecret = loadOrCreateSecret();
+// Ephemeral login token: regenerated on every server start, never written to disk.
+const loginToken = crypto.randomBytes(32).toString("hex");
 
 function sha256(value: string): Buffer {
   return crypto.createHash("sha256").update(value).digest();
 }
 
-export function isDmSecret(value: string | undefined): boolean {
+function equals(a: Buffer, b: Buffer): boolean {
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+export function isLoginToken(value: string): boolean {
+  return equals(sha256(value), sha256(loginToken));
+}
+
+function readSessionHashes(): Buffer[] {
+  try {
+    return fs
+      .readFileSync(sessionsFile, "utf8")
+      .split("\n")
+      .filter((line) => line.length > 0)
+      .map((line) => Buffer.from(line, "hex"));
+  } catch {
+    return [];
+  }
+}
+
+export function createDmSession(): string {
+  const token = crypto.randomBytes(32).toString("hex");
+  fs.ensureDirSync(path.dirname(sessionsFile));
+  fs.appendFileSync(sessionsFile, `${sha256(token).toString("hex")}\n`, { mode: 0o600 });
+  return token;
+}
+
+export function isDmSession(value: string | undefined): boolean {
   if (!value) return false;
-  return crypto.timingSafeEqual(sha256(value), sha256(dmSecret));
+  const hash = sha256(value);
+  return readSessionHashes().some((stored) => equals(stored, hash));
 }
 
 export function logDmLoginUrl(): void {
   const port = env.PORT ?? (dev ? "5173" : "3000");
   const origin = env.ORIGIN ?? `http://localhost:${port}`;
-  console.log(`[tabletopmancer] DM login URL: ${origin}/dm/${dmSecret}`);
+  console.log(`[tabletopmancer] DM login URL: ${origin}/dm/${loginToken}`);
 }

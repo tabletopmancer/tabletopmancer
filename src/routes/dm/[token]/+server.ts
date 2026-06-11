@@ -1,11 +1,11 @@
-import { isDmSecret } from "$lib/server/dm.js";
+import { createDmSession, isLoginToken } from "$lib/server/dm.js";
 import { error, redirect } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, cookies }) => {
-  if (!isDmSecret(params.secret)) error(404, "Not found");
+  if (!isLoginToken(params.token)) error(404, "Not found");
 
-  cookies.set("ttm_dm", params.secret, {
+  cookies.set("ttm_dm", createDmSession(), {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
