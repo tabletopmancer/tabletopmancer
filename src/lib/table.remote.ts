@@ -1,4 +1,5 @@
 import { command } from "$app/server";
+import { parseFormula, type ParsedFormula } from "$lib/dice.js";
 import { requireDm, requireParticipant } from "$lib/server/auth.js";
 import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
 import { error } from "@sveltejs/kit";
@@ -138,23 +139,6 @@ export const updateFog = command(
   },
 );
 
-const FORMULA_RE = /^(\d+)d(\d+)([+-]\d+)?$/i;
-const MAX_DICE_COUNT = 100;
-const MAX_DICE_SIDES = 1000;
-
-function isRollable(count: number, sides: number): boolean {
-  return count >= 1 && count <= MAX_DICE_COUNT && sides >= 2 && sides <= MAX_DICE_SIDES;
-}
-
-function parseFormula(formula: string): { count: number; sides: number; modifier: number } | null {
-  const m = formula.trim().match(FORMULA_RE);
-  if (!m) return null;
-  const count = parseInt(m[1]);
-  const sides = parseInt(m[2]);
-  if (!isRollable(count, sides)) return null;
-  return { count, sides, modifier: m[3] ? parseInt(m[3]) : 0 };
-}
-
 function sortByInitiative(a: InitiativeEntry, b: InitiativeEntry): number {
   if (a.initiative === null) return b.initiative === null ? 0 : 1;
   if (b.initiative === null) return -1;
@@ -203,7 +187,7 @@ async function captureInitiative(
 function buildRoll(
   player: Player | null,
   formula: string,
-  parsed: { count: number; sides: number; modifier: number },
+  parsed: ParsedFormula,
   wantPrivate: boolean | undefined,
 ): DiceRoll {
   const dice = Array.from(

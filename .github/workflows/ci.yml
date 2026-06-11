@@ -33,3 +33,6 @@ jobs:
 
       - name: Analyze (fallow)
         run: pnpm analyze
+
+      - name: Test (vitest)
+        run: pnpm test
