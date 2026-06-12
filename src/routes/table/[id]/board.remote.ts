@@ -1,5 +1,7 @@
-import { query } from "$app/server";
+import { getRequestEvent, query } from "$app/server";
+import { requireParticipant } from "$lib/server/auth.js";
 import { getState, getTableEmitter, trackConnection } from "$lib/server/table-state.js";
+import * as v from "valibot";
 
 function isPrivateDiceRoll(event: TableEvent, role: string): boolean {
   return event.type === "dice:rolled" && event.roll.private && role !== "DM";
@@ -31,12 +33,12 @@ function eventForRole(event: TableEvent, role: string): TableEvent | null {
   return role === "DM" ? event : filterEventForPlayer(event, role);
 }
 
-export const boardLive = query.live("unchecked", async function* (arg: string): AsyncGenerator<
+export const boardLive = query.live(v.string(), async function* (tableId): AsyncGenerator<
   BoardState | TableEvent
 > {
-  const sep = arg.lastIndexOf("|");
-  const tableId = arg.slice(0, sep);
-  const role = arg.slice(sep + 1);
+  const { locals } = getRequestEvent();
+  const role = locals.role;
+  await requireParticipant(tableId);
 
   const queue: TableEvent[] = [];
   let notify: (() => void) | null = null;

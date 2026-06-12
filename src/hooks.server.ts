@@ -1,6 +1,9 @@
+import { isDmSession, logDmLoginUrl } from "$lib/server/dm.js";
 import { getSession } from "$lib/server/sessions.js";
 import { getState } from "$lib/server/table-state.js";
 import { error, redirect, type Handle, type RequestEvent } from "@sveltejs/kit";
+
+logDmLoginUrl();
 
 function findApprovedPlayer(players: Player[], id: string): Player | undefined {
   return players.find((p) => p.id === id && p.status === "approved");
@@ -28,7 +31,7 @@ async function guardPlayer(event: RequestEvent): Promise<void> {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-  event.locals.role = event.getClientAddress() === "127.0.0.1" ? "DM" : "PLAYER";
+  event.locals.role = isDmSession(event.cookies.get("ttm_dm")) ? "DM" : "PLAYER";
   event.locals.player = null;
 
   if (event.locals.role !== "DM") await guardPlayer(event);

@@ -4,7 +4,8 @@
     "src/routes/**/{+page,+page.server,+layout,+layout.server,+server}.{ts,js,svelte}",
     "src/hooks.server.{ts,js}",
     "src/lib/index.{ts,js}",
-    "src/lib/server/*.{ts,js}"
+    "src/lib/server/*.{ts,js}",
+    "src/**/*.test.{ts,js}"
   ],
   "duplicates": {
     "minOccurrences": 3

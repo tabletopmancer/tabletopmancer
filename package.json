@@ -12,6 +12,8 @@
     "lint": "oxlint src",
     "analyze": "fallow",
     "preview": "vite preview",
+    "test": "svelte-kit sync && vitest run",
+    "test:watch": "svelte-kit sync && vitest",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -38,7 +40,9 @@
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "valibot": "^1.4.1",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
   },
   "lint-staged": {
     "*.{ts,js,svelte,css}": "oxfmt --write",
