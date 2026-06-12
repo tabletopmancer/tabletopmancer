@@ -4,6 +4,7 @@ import * as cc from "change-case";
 import fs from "fs-extra";
 import { glob } from "glob";
 import path from "node:path";
+import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
 const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
@@ -25,11 +26,22 @@ type CampaignJson = {
 // TODO: Add support for *.zip codexes
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   // TODO: Encrypt the dir name as uuid
-  // TODO: Check if dir exists
   const tablePath = path.join(savesDir, params.id);
 
-  // TODO: Check if the dir exists
+  if (!(await fs.pathExists(tablePath))) {
+    error(404, "Table not found");
+  }
+
   const codexesDir = path.join(tablePath, "codexes");
+
+  if (!(await fs.pathExists(codexesDir))) {
+    return {
+      role: locals.role,
+      player: locals.player,
+      tableId: params.id,
+      assets: [],
+    };
+  }
 
   const [systemFiles, campaignFiles] = await Promise.all([
     glob(path.join(codexesDir, "*/codex.json"), { nodir: true, follow: true }),
