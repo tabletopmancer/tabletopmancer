@@ -53,44 +53,44 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
     ...campaignFiles.map((file) => loadCampaign(file, codexesDir, url.pathname)),
   ]);
 
-  const assets: Asset[] = [];
-
-  for (const codex of codexes) {
-    // TODO: Implement .ttmignore file
-    const matches = await glob("**/*.{md,png,jpg,jpeg,webp,uvtt,dd2vtt,json}", {
-      cwd: path.join(codexesDir, codex.relativepath),
-      nodir: true,
-      follow: true,
-      ignore: ["codex.json", "campaign.json"],
-    });
-
-    for (let i = 0, l = matches.length; i < l; i++) {
-      const file = matches[i];
-
-      const asset = {
-        name: resolveAssetName(file),
-        thumbnail: "",
-        relativepath: file,
-        mimetype: resolveAssetType(file),
-        codex,
-        url: path.join(url.pathname, "asset", codex.relativepath, file),
-      };
-
-      if (asset.mimetype.match(/^image\//)) {
-        asset.thumbnail = asset.url;
-      }
-
-      assets.push(asset);
-    }
-  }
+  const allAssets = await Promise.all(
+    codexes.map((codex) => loadCodexAssets(codex, codexesDir, url.pathname)),
+  );
 
   return {
     role: locals.role,
     player: locals.player,
     tableId: params.id,
-    assets: assets.toSorted((a, b) => a.name.localeCompare(b.name)),
+    assets: allAssets.flat().toSorted((a, b) => a.name.localeCompare(b.name)),
   };
 };
+
+// TODO: Implement .ttmignore file
+async function loadCodexAssets(
+  codex: Codex,
+  codexesDir: string,
+  urlPathname: string,
+): Promise<Asset[]> {
+  const matches = await glob("**/*.{md,png,jpg,jpeg,webp,uvtt,dd2vtt,json}", {
+    cwd: path.join(codexesDir, codex.relativepath),
+    nodir: true,
+    follow: true,
+    ignore: ["codex.json", "campaign.json"],
+  });
+
+  return matches.map((file) => {
+    const mimetype = resolveAssetType(file);
+    const assetUrl = path.join(urlPathname, "asset", codex.relativepath, file);
+    return {
+      name: resolveAssetName(file),
+      thumbnail: mimetype.match(/^image\//) ? assetUrl : "",
+      relativepath: file,
+      mimetype,
+      codex,
+      url: assetUrl,
+    };
+  });
+}
 
 async function loadCodex(file: string, codexesDir: string, urlPathname: string): Promise<Codex> {
   const raw: Partial<CodexJson> = await fs.readJSON(file, "utf8");
