@@ -9,9 +9,28 @@ const stateCache = new Map<string, BoardState>();
 const emitters = new Map<string, EventEmitter>();
 const dmConnections = new Map<string, number>();
 
+const MAX_CACHED_TABLES = 100;
+
+function isEmitterIdle(emitter: EventEmitter): boolean {
+  return (
+    emitter.listenerCount("table-event") === 0 &&
+    emitter.listenerCount("dm-online") === 0 &&
+    emitter.listenerCount("dm-offline") === 0
+  );
+}
+
 export function getTableEmitter(tableId: string): EventEmitter {
   let emitter = emitters.get(tableId);
   if (!emitter) {
+    if (emitters.size >= MAX_CACHED_TABLES) {
+      for (const [id, e] of emitters) {
+        if (isEmitterIdle(e)) {
+          emitters.delete(id);
+          dmConnections.delete(id);
+          break;
+        }
+      }
+    }
     emitter = new EventEmitter();
     emitter.setMaxListeners(0);
     emitters.set(tableId, emitter);
@@ -84,8 +103,15 @@ function loadStateFromDb(tableId: string): BoardState {
 
 function loadState(tableId: string): BoardState {
   const cached = stateCache.get(tableId);
-  if (cached) return cached;
+  if (cached) {
+    stateCache.delete(tableId);
+    stateCache.set(tableId, cached);
+    return cached;
+  }
   const state = loadStateFromDb(tableId);
+  if (stateCache.size >= MAX_CACHED_TABLES) {
+    stateCache.delete(stateCache.keys().next().value!);
+  }
   stateCache.set(tableId, state);
   return state;
 }
