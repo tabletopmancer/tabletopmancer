@@ -152,15 +152,16 @@ async function readTtmIgnore(dir: string): Promise<string[]> {
     .filter((line) => line.length > 0 && !line.startsWith("#"));
 }
 
+function isJsonSchema(content: Record<string, unknown>): boolean {
+  return "$schema" in content || ("type" in content && "properties" in content);
+}
+
 function resolveAssetType(
   file: string,
   jsonContent: Record<string, unknown> | null,
 ): Asset["mimetype"] {
-  if (path.extname(file) === ".json" && jsonContent !== null) {
-    if ("$schema" in jsonContent || ("type" in jsonContent && "properties" in jsonContent)) {
-      return "application/schema+json";
-    }
+  if (path.extname(file) === ".json" && jsonContent !== null && isJsonSchema(jsonContent)) {
+    return "application/schema+json";
   }
-
   return mime.getType(file) || "text/plain";
 }
