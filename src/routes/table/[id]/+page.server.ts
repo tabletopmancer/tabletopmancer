@@ -1,4 +1,5 @@
 import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { extractZipCodexes } from "$lib/server/codex-zip.js";
 import mime from "$lib/mime.js";
 import * as cc from "change-case";
 import fs from "fs-extra";
@@ -23,7 +24,6 @@ type CampaignJson = {
   version: string;
 };
 
-// TODO: Add support for *.zip codexes
 export const load: PageServerLoad = async ({ locals, params, url }) => {
   // TODO: Encrypt the dir name as uuid
   const tablePath = path.join(savesDir, params.id);
@@ -42,6 +42,9 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
       assets: [],
     };
   }
+
+  // Unpack any zip-packaged codexes so they are loaded like directory codexes.
+  await extractZipCodexes(codexesDir);
 
   const [systemFiles, campaignFiles] = await Promise.all([
     glob(path.join(codexesDir, "*/codex.json"), { nodir: true, follow: true }),
