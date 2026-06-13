@@ -1,54 +1,31 @@
 <script lang="ts">
-  type Vec3 = [number, number, number];
+  import { parseFormula } from "$lib/dice.js";
+  import {
+    getDieShape,
+    qFromAxisAngle,
+    qMul,
+    qNormalize,
+    qRotate,
+    qSlerp,
+    settleQuat,
+    splitPercentile,
+    vnorm,
+    type DieShape,
+    type Quat,
+    type Vec3,
+  } from "$lib/dice-shapes.js";
 
   type AnimDie = {
     px: number;
     py: number;
     vx: number;
     vy: number;
-    rx: number;
-    ry: number;
-    rz: number;
-    wrx: number;
-    wry: number;
-    wrz: number;
-    targetRx: number;
-    targetRz: number;
-    result: number;
+    q: Quat; // current orientation
+    w: Vec3; // angular velocity (world space, rad/s)
+    targetQ: Quat; // orientation that lands the rolled face up
+    label: string; // text drawn on the visible faces
+    shape: DieShape;
     bounces: number;
-  };
-
-  // Cube vertices: [x, y, z] with half-size 1
-  const VERTS: Vec3[] = [
-    [-1, -1, -1],
-    [1, -1, -1],
-    [1, 1, -1],
-    [-1, 1, -1],
-    [-1, -1, 1],
-    [1, -1, 1],
-    [1, 1, 1],
-    [-1, 1, 1],
-  ];
-
-  // Faces: vertex indices + face number (standard d6 layout)
-  // face 1=top(+Y), 6=bottom(-Y), 2=front(+Z), 5=back(-Z), 3=right(+X), 4=left(-X)
-  const FACES: { vi: number[]; num: number }[] = [
-    { vi: [7, 6, 2, 3], num: 1 },
-    { vi: [0, 1, 5, 4], num: 6 },
-    { vi: [4, 5, 6, 7], num: 2 },
-    { vi: [3, 2, 1, 0], num: 5 },
-    { vi: [5, 1, 2, 6], num: 3 },
-    { vi: [0, 4, 7, 3], num: 4 },
-  ];
-
-  // (rx, rz) rotation to put face N on top
-  const FACE_UP: Record<number, [number, number]> = {
-    1: [0, 0],
-    2: [-Math.PI / 2, 0],
-    3: [0, -Math.PI / 2],
-    4: [0, Math.PI / 2],
-    5: [Math.PI / 2, 0],
-    6: [Math.PI, 0],
   };
 
   const FOCAL = 5;
@@ -58,10 +35,32 @@
   const RESTITUTION = 0.45;
   const SETTLE_START = 1700;
   const ANIM_END = 2800;
-  const LIGHT: Vec3 = normalize([0.4, 1.0, 0.6]);
+  const LIGHT: Vec3 = vnorm([0.4, 1.0, 0.6]);
   const FACE_BASE: Vec3 = [232, 213, 183];
 
-  // Physics helpers at module level to keep the animation loop simple
+  // Physics helpers at module level to keep the animation loop simple. They are
+  // shape-independent: they move the die, bounce it, and steer its orientation
+  // toward the settle target.
+
+  // Advance the orientation by the current angular velocity.
+  function integrateRotation(die: AnimDie, dt: number): void {
+    const wmag = Math.hypot(die.w[0], die.w[1], die.w[2]);
+    if (wmag <= 1e-6) return;
+    const axis: Vec3 = [die.w[0] / wmag, die.w[1] / wmag, die.w[2] / wmag];
+    die.q = qNormalize(qMul(qFromAxisAngle(axis, wmag * dt), die.q));
+  }
+
+  // Keep the die inside the side walls, reflecting its horizontal velocity.
+  function applyWalls(die: AnimDie, width: number): void {
+    const wall = HALF + 10;
+    if (die.px < wall) {
+      die.px = wall;
+      die.vx = Math.abs(die.vx) * 0.7;
+    } else if (die.px > width - wall) {
+      die.px = width - wall;
+      die.vx = -Math.abs(die.vx) * 0.7;
+    }
+  }
 
   function applyFloorBounce(die: AnimDie, dt: number, floor: number, width: number): void {
     die.vy += GRAVITY * dt;
@@ -72,35 +71,21 @@
       const rest = Math.max(0.08, RESTITUTION - die.bounces * 0.12);
       die.vy = -Math.abs(die.vy) * rest;
       die.vx *= 0.82;
-      die.wrx *= 0.5;
-      die.wry *= 0.5;
-      die.wrz *= 0.5;
+      die.w = [die.w[0] * 0.5, die.w[1] * 0.5, die.w[2] * 0.5];
       die.bounces++;
     }
-    die.rx += die.wrx * dt;
-    die.ry += die.wry * dt;
-    die.rz += die.wrz * dt;
-    const wall = HALF + 10;
-    if (die.px < wall) {
-      die.px = wall;
-      die.vx = Math.abs(die.vx) * 0.7;
-    }
-    if (die.px > width - wall) {
-      die.px = width - wall;
-      die.vx = -Math.abs(die.vx) * 0.7;
-    }
+    integrateRotation(die, dt);
+    applyWalls(die, width);
   }
 
   function applySettle(die: AnimDie, dt: number, settleT: number, floor: number): void {
     const decayRate = 2.8 + settleT * 9;
-    die.wrx *= Math.max(0, 1 - decayRate * dt);
-    die.wry *= Math.max(0, 1 - decayRate * dt);
-    die.wrz *= Math.max(0, 1 - decayRate * dt);
+    const f = Math.max(0, 1 - decayRate * dt);
+    die.w = [die.w[0] * f, die.w[1] * f, die.w[2] * f];
     if (settleT > 0.25) {
       const progress = Math.min(1, (settleT - 0.25) / 0.75);
       const lerpRate = progress * progress * 0.12;
-      die.rx += (die.targetRx - die.rx) * lerpRate;
-      die.rz += (die.targetRz - die.rz) * lerpRate;
+      die.q = qSlerp(die.q, die.targetQ, lerpRate);
       if (die.py >= floor - 2) {
         die.vy *= Math.max(0, 1 - progress * 0.3);
         die.vx *= Math.max(0, 1 - progress * 0.15);
@@ -121,32 +106,60 @@
     };
   });
 
+  function randomQuat(): Quat {
+    const axis: Vec3 = [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1];
+    return qFromAxisAngle(axis, Math.random() * Math.PI * 2);
+  }
+
+  function randomSpin(): number {
+    return (Math.random() - 0.5) * 22;
+  }
+
+  // A render spec is one drawn die. Most rolls map a result to a single die;
+  // a d100 splits each result into a tens + units pair of d10s.
+  type Spec = { shape: DieShape; label: string; faceNum: number };
+
+  function buildSpecs(sides: number, results: number[]): Spec[] {
+    if (sides === 100) {
+      const d10 = getDieShape(10);
+      return results.flatMap((result) => {
+        const { tens, units } = splitPercentile(result);
+        return [
+          { shape: d10, label: String(tens * 10).padStart(2, "0"), faceNum: tens + 1 },
+          { shape: d10, label: String(units), faceNum: units + 1 },
+        ];
+      });
+    }
+    const shape = getDieShape(sides);
+    return results.map((result) => ({
+      shape,
+      label: String(result),
+      faceNum: ((result - 1) % shape.sides) + 1,
+    }));
+  }
+
+  function createDie(spec: Spec, px: number): AnimDie {
+    return {
+      px,
+      py: -50 - Math.random() * 80,
+      vx: (Math.random() - 0.5) * 120,
+      vy: 220 + Math.random() * 160,
+      q: randomQuat(),
+      w: [randomSpin(), randomSpin(), randomSpin()],
+      targetQ: settleQuat(spec.shape, spec.faceNum),
+      label: spec.label,
+      shape: spec.shape,
+      bounces: 0,
+    };
+  }
+
   function trigger(r: DiceRoll) {
     if (rafId) cancelAnimationFrame(rafId);
 
-    const MAX = Math.min(r.dice.length, 5);
-    const spacing = window.innerWidth / (MAX + 1);
-
-    const dice: AnimDie[] = r.dice.slice(0, MAX).map((result, idx) => {
-      const faceTarget = ((result - 1) % 6) + 1;
-      const [targetRx, targetRz] = FACE_UP[faceTarget];
-      return {
-        px: spacing * (idx + 1),
-        py: -50 - Math.random() * 80,
-        vx: (Math.random() - 0.5) * 120,
-        vy: 220 + Math.random() * 160,
-        rx: Math.random() * Math.PI * 2,
-        ry: Math.random() * Math.PI * 2,
-        rz: Math.random() * Math.PI * 2,
-        wrx: (Math.random() - 0.5) * 22,
-        wry: (Math.random() - 0.5) * 22,
-        wrz: (Math.random() - 0.5) * 22,
-        targetRx,
-        targetRz,
-        result,
-        bounces: 0,
-      };
-    });
+    const sides = parseFormula(r.formula)?.sides ?? 6;
+    const specs = buildSpecs(sides, r.dice.slice(0, 5));
+    const spacing = window.innerWidth / (specs.length + 1);
+    const dice = specs.map((spec, idx) => createDie(spec, spacing * (idx + 1)));
 
     let startTs = 0;
     let lastTs = 0;
@@ -198,41 +211,15 @@
     return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c];
   }
 
-  function rotY(v: Vec3, angle: number): Vec3 {
-    const c = Math.cos(angle),
-      s = Math.sin(angle);
-    return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
-  }
-
-  function rotZ(v: Vec3, angle: number): Vec3 {
-    const c = Math.cos(angle),
-      s = Math.sin(angle);
-    return [v[0] * c - v[1] * s, v[0] * s + v[1] * c, v[2]];
-  }
-
   function dot(a: Vec3, b: Vec3): number {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   }
 
-  function normalize(v: Vec3): Vec3 {
-    const len = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    return len > 0 ? [v[0] / len, v[1] / len, v[2] / len] : [0, 1, 0];
-  }
-
-  function faceNormal(fv: Vec3[]): Vec3 {
-    const e1: Vec3 = [fv[1][0] - fv[0][0], fv[1][1] - fv[0][1], fv[1][2] - fv[0][2]];
-    const e2: Vec3 = [fv[3][0] - fv[0][0], fv[3][1] - fv[0][1], fv[3][2] - fv[0][2]];
-    return normalize([
-      e1[1] * e2[2] - e1[2] * e2[1],
-      e1[2] * e2[0] - e1[0] * e2[2],
-      e1[0] * e2[1] - e1[1] * e2[0],
-    ]);
-  }
-
   function drawDie(ctx: CanvasRenderingContext2D, die: AnimDie) {
-    // Die-rotated vertices (no view tilt) — used for lighting normals
-    const dverts = VERTS.map((v) => rotZ(rotY(rotX(v, die.rx), die.ry), die.rz));
-    // View-tilted vertices — used for projection
+    const shape = die.shape;
+    // Die-rotated vertices (no view tilt) — face normals come from these.
+    const dverts = shape.verts.map((v) => qRotate(die.q, v));
+    // View-tilted vertices — used for projection.
     const tverts = dverts.map((v) => rotX(v, VIEW_RX));
 
     const pverts = tverts.map((v) => {
@@ -241,14 +228,17 @@
       return [v[0] * scale + die.px, -v[1] * scale + die.py] as [number, number];
     });
 
-    const sorted = FACES.map((face) => {
-      const avgZ = face.vi.reduce((sum, idx) => sum + tverts[idx][2], 0) / 4;
-      return { ...face, avgZ };
-    }).toSorted((a, b) => a.avgZ - b.avgZ);
+    const sorted = shape.faces
+      .map((face) => {
+        const avgZ = face.vi.reduce((sum, idx) => sum + tverts[idx][2], 0) / face.vi.length;
+        return { face, avgZ };
+      })
+      .toSorted((a, b) => a.avgZ - b.avgZ);
 
-    for (const face of sorted) {
+    for (const { face, avgZ } of sorted) {
       const pts = face.vi.map((idx) => pverts[idx]);
-      const n = faceNormal(face.vi.map((idx) => dverts[idx]));
+      // World-space normal (orientation only, no view tilt) for flat shading.
+      const n = qRotate(die.q, face.normal);
       const brightness = 0.42 + 0.58 * Math.max(0, dot(n, LIGHT));
       const red = Math.round(FACE_BASE[0] * brightness);
       const grn = Math.round(FACE_BASE[1] * brightness);
@@ -264,15 +254,15 @@
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Show result number on clearly front-facing faces
-      if (face.avgZ > 0.1) {
+      // Show the result on clearly front-facing faces.
+      if (avgZ > 0.1) {
         const cx = pts.reduce((sum, pt) => sum + pt[0], 0) / pts.length;
         const cy = pts.reduce((sum, pt) => sum + pt[1], 0) / pts.length;
         ctx.fillStyle = "rgba(60,20,0,0.85)";
         ctx.font = `bold ${Math.round(HALF * 0.9)}px serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(die.result), cx, cy);
+        ctx.fillText(die.label, cx, cy);
       }
     }
   }
