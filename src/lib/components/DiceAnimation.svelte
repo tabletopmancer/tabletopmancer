@@ -42,6 +42,26 @@
   // shape-independent: they move the die, bounce it, and steer its orientation
   // toward the settle target.
 
+  // Advance the orientation by the current angular velocity.
+  function integrateRotation(die: AnimDie, dt: number): void {
+    const wmag = Math.hypot(die.w[0], die.w[1], die.w[2]);
+    if (wmag <= 1e-6) return;
+    const axis: Vec3 = [die.w[0] / wmag, die.w[1] / wmag, die.w[2] / wmag];
+    die.q = qNormalize(qMul(qFromAxisAngle(axis, wmag * dt), die.q));
+  }
+
+  // Keep the die inside the side walls, reflecting its horizontal velocity.
+  function applyWalls(die: AnimDie, width: number): void {
+    const wall = HALF + 10;
+    if (die.px < wall) {
+      die.px = wall;
+      die.vx = Math.abs(die.vx) * 0.7;
+    } else if (die.px > width - wall) {
+      die.px = width - wall;
+      die.vx = -Math.abs(die.vx) * 0.7;
+    }
+  }
+
   function applyFloorBounce(die: AnimDie, dt: number, floor: number, width: number): void {
     die.vy += GRAVITY * dt;
     die.px += die.vx * dt;
@@ -54,21 +74,8 @@
       die.w = [die.w[0] * 0.5, die.w[1] * 0.5, die.w[2] * 0.5];
       die.bounces++;
     }
-    // Integrate the orientation from the angular velocity.
-    const wmag = Math.hypot(die.w[0], die.w[1], die.w[2]);
-    if (wmag > 1e-6) {
-      const axis: Vec3 = [die.w[0] / wmag, die.w[1] / wmag, die.w[2] / wmag];
-      die.q = qNormalize(qMul(qFromAxisAngle(axis, wmag * dt), die.q));
-    }
-    const wall = HALF + 10;
-    if (die.px < wall) {
-      die.px = wall;
-      die.vx = Math.abs(die.vx) * 0.7;
-    }
-    if (die.px > width - wall) {
-      die.px = width - wall;
-      die.vx = -Math.abs(die.vx) * 0.7;
-    }
+    integrateRotation(die, dt);
+    applyWalls(die, width);
   }
 
   function applySettle(die: AnimDie, dt: number, settleT: number, floor: number): void {
@@ -108,35 +115,32 @@
     return (Math.random() - 0.5) * 22;
   }
 
-  function trigger(r: DiceRoll) {
-    if (rafId) cancelAnimationFrame(rafId);
+  // A render spec is one drawn die. Most rolls map a result to a single die;
+  // a d100 splits each result into a tens + units pair of d10s.
+  type Spec = { shape: DieShape; label: string; faceNum: number };
 
-    const sides = parseFormula(r.formula)?.sides ?? 6;
-    const results = r.dice.slice(0, 5);
-
-    // A render spec is one drawn die. Most rolls map a result to a single die;
-    // a d100 splits each result into a tens + units pair of d10s.
-    type Spec = { shape: DieShape; label: string; faceNum: number };
-    const specs: Spec[] = [];
+  function buildSpecs(sides: number, results: number[]): Spec[] {
     if (sides === 100) {
       const d10 = getDieShape(10);
-      for (const result of results) {
+      return results.flatMap((result) => {
         const { tens, units } = splitPercentile(result);
-        specs.push({ shape: d10, label: String(tens * 10).padStart(2, "0"), faceNum: tens + 1 });
-        specs.push({ shape: d10, label: String(units), faceNum: units + 1 });
-      }
-    } else {
-      const shape = getDieShape(sides);
-      for (const result of results) {
-        const faceNum = ((result - 1) % shape.sides) + 1;
-        specs.push({ shape, label: String(result), faceNum });
-      }
+        return [
+          { shape: d10, label: String(tens * 10).padStart(2, "0"), faceNum: tens + 1 },
+          { shape: d10, label: String(units), faceNum: units + 1 },
+        ];
+      });
     }
+    const shape = getDieShape(sides);
+    return results.map((result) => ({
+      shape,
+      label: String(result),
+      faceNum: ((result - 1) % shape.sides) + 1,
+    }));
+  }
 
-    const spacing = window.innerWidth / (specs.length + 1);
-
-    const dice: AnimDie[] = specs.map((spec, idx) => ({
-      px: spacing * (idx + 1),
+  function createDie(spec: Spec, px: number): AnimDie {
+    return {
+      px,
       py: -50 - Math.random() * 80,
       vx: (Math.random() - 0.5) * 120,
       vy: 220 + Math.random() * 160,
@@ -146,7 +150,16 @@
       label: spec.label,
       shape: spec.shape,
       bounces: 0,
-    }));
+    };
+  }
+
+  function trigger(r: DiceRoll) {
+    if (rafId) cancelAnimationFrame(rafId);
+
+    const sides = parseFormula(r.formula)?.sides ?? 6;
+    const specs = buildSpecs(sides, r.dice.slice(0, 5));
+    const spacing = window.innerWidth / (specs.length + 1);
+    const dice = specs.map((spec, idx) => createDie(spec, spacing * (idx + 1)));
 
     let startTs = 0;
     let lastTs = 0;

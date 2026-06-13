@@ -59,7 +59,7 @@ function centroid(points: Vec3[]): Vec3 {
 
 // --- quaternion helpers -----------------------------------------------------
 
-export const QUAT_IDENTITY: Quat = [1, 0, 0, 0];
+const QUAT_IDENTITY: Quat = [1, 0, 0, 0];
 
 export function qMul(a: Quat, b: Quat): Quat {
   const [aw, ax, ay, az] = a;
@@ -99,7 +99,7 @@ export function qRotate(q: Quat, v: Vec3): Vec3 {
 }
 
 // Shortest-arc rotation taking unit vector `from` onto unit vector `to`.
-export function qBetween(from: Vec3, to: Vec3): Quat {
+function qBetween(from: Vec3, to: Vec3): Quat {
   const f = vnorm(from);
   const t = vnorm(to);
   const d = vdot(f, t);
