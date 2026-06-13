@@ -1,5 +1,6 @@
 import { TABLETOPMANCER_HOME } from "$env/static/private";
 import mime from "$lib/mime.js";
+import { requireParticipant } from "$lib/server/auth.js";
 import { error } from "@sveltejs/kit";
 import fs from "fs/promises";
 import path from "path";
@@ -17,8 +18,7 @@ function resolveAssetFile(tableId: string, assetPath: string): string {
 }
 
 export const GET: RequestHandler = async ({ params }) => {
-  // TODO: Check if the table is public if role is not DM
-  // TODO: Check for permissions on certain data
+  await requireParticipant(params.id);
   const file = resolveAssetFile(params.id, params.path);
 
   let data: Buffer;
