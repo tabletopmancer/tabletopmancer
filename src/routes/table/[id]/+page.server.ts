@@ -156,11 +156,15 @@ function isJsonSchema(content: Record<string, unknown>): boolean {
   return "$schema" in content || ("type" in content && "properties" in content);
 }
 
+function isSchemaAsset(file: string, jsonContent: Record<string, unknown> | null): boolean {
+  return path.extname(file) === ".json" && jsonContent !== null && isJsonSchema(jsonContent);
+}
+
 function resolveAssetType(
   file: string,
   jsonContent: Record<string, unknown> | null,
 ): Asset["mimetype"] {
-  if (path.extname(file) === ".json" && jsonContent !== null && isJsonSchema(jsonContent)) {
+  if (isSchemaAsset(file, jsonContent)) {
     return "application/schema+json";
   }
   return mime.getType(file) || "text/plain";
