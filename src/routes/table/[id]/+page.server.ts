@@ -65,17 +65,18 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
   };
 };
 
-// TODO: Implement .ttmignore file
 async function loadCodexAssets(
   codex: Codex,
   codexesDir: string,
   urlPathname: string,
 ): Promise<Asset[]> {
+  const codexDir = path.join(codexesDir, codex.relativepath);
+  const ttmIgnorePatterns = await readTtmIgnore(codexDir);
   const matches = await glob("**/*.{md,png,jpg,jpeg,webp,uvtt,dd2vtt,json}", {
-    cwd: path.join(codexesDir, codex.relativepath),
+    cwd: codexDir,
     nodir: true,
     follow: true,
-    ignore: ["codex.json", "campaign.json"],
+    ignore: ["codex.json", "campaign.json", ...ttmIgnorePatterns],
   });
 
   return matches.map((file) => {
@@ -122,6 +123,16 @@ async function loadCampaign(file: string, codexesDir: string, urlPathname: strin
 // TODO: For json data, get the name from the schema
 function resolveAssetName(file: string): Asset["name"] {
   return cc.sentenceCase(path.basename(file).slice(0, path.extname(file).length * -1));
+}
+
+async function readTtmIgnore(dir: string): Promise<string[]> {
+  const ignoreFile = path.join(dir, ".ttmignore");
+  if (!(await fs.pathExists(ignoreFile))) return [];
+  const content: string = await fs.readFile(ignoreFile, "utf8");
+  return content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"));
 }
 
 // Determine the correct type for an asset
