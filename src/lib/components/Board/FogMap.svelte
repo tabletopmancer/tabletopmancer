@@ -11,6 +11,7 @@
     fogToolActive = false,
     brushSize = 50,
     brushMode = "reveal" as "reveal" | "hide",
+    onrightclick,
   }: {
     map: BoardMap;
     tableId: string;
@@ -18,6 +19,7 @@
     fogToolActive?: boolean;
     brushSize?: number;
     brushMode?: "reveal" | "hide";
+    onrightclick?: (map: BoardMap, clientX: number, clientY: number) => void;
   } = $props();
 
   const globalTransform = getContext<{ position: number[]; scale: number }>("globalTransform");
@@ -166,6 +168,13 @@
     painting = false;
   }
 
+  function onContextMenu(event: MouseEvent) {
+    if (role !== "DM") return;
+    event.preventDefault();
+    event.stopPropagation();
+    onrightclick?.(map, event.clientX, event.clientY);
+  }
+
   async function sendPaint(event: MouseEvent, force: boolean) {
     const now = Date.now();
     if (!force && now - lastSendTime < 50) return;
@@ -185,6 +194,7 @@
   <div
     role="region"
     {...panProps}
+    oncontextmenu={onContextMenu}
     style:translate={`${localX}px ${localY}px`}
     class="map-node"
     class:dragging

@@ -1,6 +1,12 @@
 <script lang="ts">
   import { dropzone } from "$lib/actions/drag-n-drop.js";
-  import { placeToken, placeMap, removeToken, assignTokenOwner } from "$lib/table.remote";
+  import {
+    placeToken,
+    placeMap,
+    removeToken,
+    removeMap,
+    assignTokenOwner,
+  } from "$lib/table.remote";
   import Board from "./Board.svelte";
   import AssetNode from "./Board/Asset.svelte";
   import FogMap from "./Board/FogMap.svelte";
@@ -47,6 +53,9 @@
   };
 
   let contextMenu = $state<ContextMenu | null>(null);
+
+  type MapContextMenu = { map: BoardMap; x: number; y: number };
+  let mapContextMenu = $state<MapContextMenu | null>(null);
 
   const approvedPlayers = $derived(boardState.players.filter((p) => p.status === "approved"));
 
@@ -97,6 +106,19 @@
     await assignTokenOwner({ tableId, tokenId, owner: ownerId });
   }
 
+  function handleMapRightClick(map: BoardMap, clientX: number, clientY: number) {
+    mapContextMenu = { map, x: clientX, y: clientY };
+  }
+
+  function closeMapMenu() {
+    mapContextMenu = null;
+  }
+
+  async function handleRemoveMap(mapId: string) {
+    closeMapMenu();
+    await removeMap({ tableId, mapId });
+  }
+
   function handleBoardClick(event: MouseEvent) {
     if (!event.altKey) return;
     event.preventDefault();
@@ -116,7 +138,15 @@
 >
   <Board bind:this={board}>
     {#each boardState.maps as map (map.id)}
-      <FogMap {map} {tableId} {role} {fogToolActive} {brushSize} {brushMode} />
+      <FogMap
+        {map}
+        {tableId}
+        {role}
+        {fogToolActive}
+        {brushSize}
+        {brushMode}
+        onrightclick={handleMapRightClick}
+      />
     {/each}
     {#each boardState.tokens as token (token.id)}
       <TokenNode {token} {tableId} {role} {player} onrightclick={handleTokenRightClick} />
@@ -231,6 +261,26 @@
     <button
       class="context-item context-danger"
       onclick={() => handleRemoveToken(contextMenu!.token.id)}
+    >
+      Remove
+    </button>
+  </div>
+{/if}
+
+{#if mapContextMenu}
+  <div
+    class="context-overlay"
+    role="button"
+    tabindex="-1"
+    aria-label="Close menu"
+    onclick={closeMapMenu}
+    onkeydown={(e) => e.key === "Escape" && closeMapMenu()}
+  ></div>
+
+  <div class="context-menu" style:left="{mapContextMenu.x}px" style:top="{mapContextMenu.y}px">
+    <button
+      class="context-item context-danger"
+      onclick={() => handleRemoveMap(mapContextMenu!.map.id)}
     >
       Remove
     </button>
