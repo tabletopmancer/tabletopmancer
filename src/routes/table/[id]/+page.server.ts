@@ -79,18 +79,22 @@ async function loadCodexAssets(
     ignore: ["codex.json", "campaign.json", ...ttmIgnorePatterns],
   });
 
-  return matches.map((file) => {
-    const mimetype = resolveAssetType(file);
-    const assetUrl = path.join(urlPathname, "asset", codex.relativepath, file);
-    return {
-      name: resolveAssetName(file),
-      thumbnail: mimetype.match(/^image\//) ? assetUrl : "",
-      relativepath: file,
-      mimetype,
-      codex,
-      url: assetUrl,
-    };
-  });
+  return Promise.all(
+    matches.map(async (file) => {
+      const jsonContent =
+        path.extname(file) === ".json" ? await readJsonSafe(path.join(codexDir, file)) : null;
+      const mimetype = resolveAssetType(file, jsonContent);
+      const assetUrl = path.join(urlPathname, "asset", codex.relativepath, file);
+      return {
+        name: resolveAssetName(file, jsonContent),
+        thumbnail: mimetype.match(/^image\//) ? assetUrl : "",
+        relativepath: file,
+        mimetype,
+        codex,
+        url: assetUrl,
+      };
+    }),
+  );
 }
 
 async function loadCodex(file: string, codexesDir: string, urlPathname: string): Promise<Codex> {
@@ -120,9 +124,22 @@ async function loadCampaign(file: string, codexesDir: string, urlPathname: strin
   } as Codex;
 }
 
-// TODO: For json data, get the name from the schema
-function resolveAssetName(file: string): Asset["name"] {
+function resolveAssetName(
+  file: string,
+  jsonContent: Record<string, unknown> | null,
+): Asset["name"] {
+  if (jsonContent && typeof jsonContent.title === "string" && jsonContent.title.trim()) {
+    return jsonContent.title.trim();
+  }
   return cc.sentenceCase(path.basename(file).slice(0, path.extname(file).length * -1));
+}
+
+async function readJsonSafe(filePath: string): Promise<Record<string, unknown> | null> {
+  try {
+    return await fs.readJSON(filePath, "utf8");
+  } catch {
+    return null;
+  }
 }
 
 async function readTtmIgnore(dir: string): Promise<string[]> {
@@ -135,11 +152,14 @@ async function readTtmIgnore(dir: string): Promise<string[]> {
     .filter((line) => line.length > 0 && !line.startsWith("#"));
 }
 
-// Determine the correct type for an asset
-function resolveAssetType(file: string): Asset["mimetype"] {
-  // TODO: Check the content of the json file to detect schemas
-  if (path.extname(file) === ".json" && file.includes("schema")) {
-    return "application/schema+json";
+function resolveAssetType(
+  file: string,
+  jsonContent: Record<string, unknown> | null,
+): Asset["mimetype"] {
+  if (path.extname(file) === ".json" && jsonContent !== null) {
+    if ("$schema" in jsonContent || ("type" in jsonContent && "properties" in jsonContent)) {
+      return "application/schema+json";
+    }
   }
 
   return mime.getType(file) || "text/plain";
