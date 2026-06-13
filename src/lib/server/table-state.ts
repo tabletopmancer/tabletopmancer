@@ -120,8 +120,8 @@ export function trackDmConnection(tableId: string): () => void {
 }
 
 export async function dispatchTableEvent(tableId: string, event: TableEvent): Promise<void> {
+  persistTableEvent(getDb(tableId), event);
   const state = loadState(tableId);
   applyTableEvent(state, event);
-  persistTableEvent(getDb(tableId), event);
   getTableEmitter(tableId).emit("table-event", event);
 }
