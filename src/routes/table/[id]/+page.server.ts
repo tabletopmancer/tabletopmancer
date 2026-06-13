@@ -1,5 +1,6 @@
 import { TABLETOPMANCER_HOME } from "$env/static/private";
 import { extractZipCodexes } from "$lib/server/codex-zip.js";
+import { tableDirName } from "$lib/server/table-dir.js";
 import mime from "$lib/mime.js";
 import * as cc from "change-case";
 import fs from "fs-extra";
@@ -25,8 +26,7 @@ type CampaignJson = {
 };
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-  // TODO: Encrypt the dir name as uuid
-  const tablePath = path.join(savesDir, params.id);
+  const tablePath = path.join(savesDir, tableDirName(params.id));
 
   if (!(await fs.pathExists(tablePath))) {
     error(404, "Table not found");
