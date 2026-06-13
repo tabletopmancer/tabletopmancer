@@ -1,6 +1,7 @@
 import { TABLETOPMANCER_HOME } from "$env/static/private";
 import mime from "$lib/mime.js";
 import { requireParticipant } from "$lib/server/auth.js";
+import { tableDirName } from "$lib/server/table-dir.js";
 import { error } from "@sveltejs/kit";
 import fs from "fs/promises";
 import path from "path";
@@ -10,7 +11,7 @@ const savesDir = path.resolve(TABLETOPMANCER_HOME, "saves");
 
 /** Resolves an asset path, throwing 404 if it escapes the table's codexes directory. */
 function resolveAssetFile(tableId: string, assetPath: string): string {
-  const codexesDir = path.resolve(savesDir, tableId, "codexes");
+  const codexesDir = path.resolve(savesDir, tableDirName(tableId), "codexes");
   if (!codexesDir.startsWith(savesDir + path.sep)) error(404, "Not found");
   const file = path.resolve(codexesDir, assetPath);
   if (!file.startsWith(codexesDir + path.sep)) error(404, "Not found");
