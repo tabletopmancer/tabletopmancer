@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   const { id: tableId } = params;
   if (!(await tableExists(tableId))) error(404, "Table not found");
   const player = await findExistingPlayer(tableId, cookies.get("ttm_token"));
-  if (player && player.status === "approved") redirect(302, `/table/${tableId}`);
+  if (player?.status === "approved") redirect(302, `/table/${tableId}`);
   return { player: player ?? null, tableId };
 };
 
