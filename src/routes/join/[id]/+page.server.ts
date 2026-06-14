@@ -19,12 +19,12 @@ async function tableExists(tableId: string): Promise<boolean> {
 async function findExistingPlayer(
   tableId: string,
   token: string | undefined,
-): Promise<Player | undefined> {
-  if (!token) return undefined;
+): Promise<Player | null> {
+  if (!token) return null;
   const playerId = await getSession(tableId, token);
-  if (!playerId) return undefined;
+  if (!playerId) return null;
   const state = await getState(tableId);
-  return state.players.find((p) => p.id === playerId);
+  return state.players.find((p) => p.id === playerId) ?? null;
 }
 
 function isRetryableStatus(status: Player["status"]): boolean {
@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   if (!(await tableExists(tableId))) error(404, "Table not found");
   const player = await findExistingPlayer(tableId, cookies.get("ttm_token"));
   if (player?.status === "approved") redirect(302, `/table/${tableId}`);
-  return { player: player ?? null, tableId };
+  return { player, tableId };
 };
 
 export const actions: Actions = {
