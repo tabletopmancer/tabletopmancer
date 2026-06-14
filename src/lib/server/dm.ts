@@ -1,6 +1,6 @@
 import { dev } from "$app/environment";
 import { env } from "$env/dynamic/private";
-import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import fs from "fs-extra";
 import crypto from "node:crypto";
 import path from "node:path";

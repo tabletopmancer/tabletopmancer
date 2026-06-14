@@ -1,4 +1,4 @@
-import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import fs from "fs-extra";
 import path from "node:path";
 import type { PageServerLoad } from "./$types";

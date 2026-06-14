@@ -1,4 +1,4 @@
-import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import mime from "$lib/mime.js";
 import { requireParticipant } from "$lib/server/auth.js";
 import { tableDirName } from "$lib/server/table-dir.js";

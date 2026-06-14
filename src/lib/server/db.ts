@@ -1,4 +1,4 @@
-import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import { SCHEMA } from "$lib/server/schema.js";
 import { tableDirName } from "$lib/server/table-dir.js";
 import { DatabaseSync } from "node:sqlite";

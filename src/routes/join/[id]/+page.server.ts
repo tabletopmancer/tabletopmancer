@@ -1,4 +1,4 @@
-import { TABLETOPMANCER_HOME } from "$env/static/private";
+import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import { createSession, getSession } from "$lib/server/sessions.js";
 import { tableDirName } from "$lib/server/table-dir.js";
 import { getState, dispatchTableEvent } from "$lib/server/table-state.js";
