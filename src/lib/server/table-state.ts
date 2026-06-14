@@ -19,18 +19,20 @@ function isEmitterIdle(emitter: EventEmitter): boolean {
   );
 }
 
+function evictIdleEmitter(): void {
+  for (const [id, e] of emitters) {
+    if (isEmitterIdle(e)) {
+      emitters.delete(id);
+      dmConnections.delete(id);
+      return;
+    }
+  }
+}
+
 export function getTableEmitter(tableId: string): EventEmitter {
   let emitter = emitters.get(tableId);
   if (!emitter) {
-    if (emitters.size >= MAX_CACHED_TABLES) {
-      for (const [id, e] of emitters) {
-        if (isEmitterIdle(e)) {
-          emitters.delete(id);
-          dmConnections.delete(id);
-          break;
-        }
-      }
-    }
+    if (emitters.size >= MAX_CACHED_TABLES) evictIdleEmitter();
     emitter = new EventEmitter();
     emitter.setMaxListeners(0);
     emitters.set(tableId, emitter);
