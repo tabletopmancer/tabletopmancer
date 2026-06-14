@@ -29,17 +29,24 @@ const persisters = {
     db.prepare("UPDATE tokens SET owner = ? WHERE id = ?").run(event.owner ?? null, event.id),
   "map:placed": (db, event) => {
     const m = event.map;
-    db.prepare("INSERT OR REPLACE INTO maps (id, asset_url, x, y) VALUES (?, ?, ?, ?)").run(
-      m.id,
-      m.assetUrl,
-      m.position.x,
-      m.position.y,
-    );
-    if (m.fog?.length) {
-      const ins = db.prepare(
-        "INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)",
+    db.exec("BEGIN");
+    try {
+      db.prepare("INSERT OR REPLACE INTO maps (id, asset_url, x, y) VALUES (?, ?, ?, ?)").run(
+        m.id,
+        m.assetUrl,
+        m.position.x,
+        m.position.y,
       );
-      for (const p of m.fog) ins.run(m.id, p.mode, p.x, p.y, p.radius);
+      if (m.fog?.length) {
+        const ins = db.prepare(
+          "INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)",
+        );
+        for (const p of m.fog) ins.run(m.id, p.mode, p.x, p.y, p.radius);
+      }
+      db.exec("COMMIT");
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
     }
   },
   "map:removed": (db, event) => db.prepare("DELETE FROM maps WHERE id = ?").run(event.id),
