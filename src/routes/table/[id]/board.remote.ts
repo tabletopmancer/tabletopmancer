@@ -33,6 +33,8 @@ function eventForRole(event: TableEvent, role: string): TableEvent | null {
   return role === "DM" ? event : filterEventForPlayer(event, role);
 }
 
+const MAX_QUEUE_SIZE = 500;
+
 export const boardLive = query.live(v.string(), async function* (tableId): AsyncGenerator<
   BoardState | TableEvent
 > {
@@ -46,6 +48,7 @@ export const boardLive = query.live(v.string(), async function* (tableId): Async
   const handler = (event: TableEvent) => {
     const filtered = eventForRole(event, role);
     if (!filtered) return;
+    if (queue.length >= MAX_QUEUE_SIZE) queue.shift();
     queue.push(filtered);
     const resolve = notify;
     notify = null;

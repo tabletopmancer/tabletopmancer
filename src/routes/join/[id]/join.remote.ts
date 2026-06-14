@@ -41,22 +41,22 @@ export const playerStatus = query.live(
       resolve?.();
     };
 
+    const MAX_QUEUE_SIZE = 50;
+
+    const enqueue = (ev: PlayerStatusEvent) => {
+      if (queue.length >= MAX_QUEUE_SIZE) queue.shift();
+      queue.push(ev);
+      wake();
+    };
+
     const eventHandler = (event: TableEvent) => {
       if (!isPlayerTableEvent(event)) return;
       if (event.playerId !== playerId) return;
-      queue.push({ type: event.type });
-      wake();
+      enqueue({ type: event.type });
     };
 
-    const dmOnlineHandler = () => {
-      queue.push({ type: "dm:online" });
-      wake();
-    };
-
-    const dmOfflineHandler = () => {
-      queue.push({ type: "dm:offline" });
-      wake();
-    };
+    const dmOnlineHandler = () => enqueue({ type: "dm:online" });
+    const dmOfflineHandler = () => enqueue({ type: "dm:offline" });
 
     const emitter = getTableEmitter(tableId);
     emitter.on("table-event", eventHandler);
