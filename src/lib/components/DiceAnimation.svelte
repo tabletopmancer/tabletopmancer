@@ -47,6 +47,18 @@
     die.q = qNormalize(qMul(qFromAxisAngle(axis, wmag * dt), die.q));
   }
 
+  // Clamp position to [lo, hi], reflect velocity on hit; returns true if a wall was struck.
+  function bounceAxis(
+    pos: number,
+    vel: number,
+    lo: number,
+    hi: number,
+  ): [pos: number, vel: number, hit: boolean] {
+    if (pos < lo) return [lo, Math.abs(vel) * RESTITUTION, true];
+    if (pos > hi) return [hi, -Math.abs(vel) * RESTITUTION, true];
+    return [pos, vel, false];
+  }
+
   // Slide the die across the table with friction; bounce off all four walls.
   function applyPhysics(die: AnimDie, dt: number, W: number, H: number): void {
     const linDecay = Math.max(0, 1 - FRICTION * dt);
@@ -58,25 +70,13 @@
     const spinDecay = Math.max(0, 1 - SPIN_FRICTION * dt);
     die.w = [die.w[0] * spinDecay, die.w[1] * spinDecay, die.w[2] * spinDecay];
 
-    if (die.px < WALL) {
-      die.px = WALL;
-      die.vx = Math.abs(die.vx) * RESTITUTION;
-      die.w = [die.w[0] * 0.6, die.w[1] * 0.6, die.w[2] * 0.6];
-      die.bounces++;
-    } else if (die.px > W - WALL) {
-      die.px = W - WALL;
-      die.vx = -Math.abs(die.vx) * RESTITUTION;
-      die.w = [die.w[0] * 0.6, die.w[1] * 0.6, die.w[2] * 0.6];
-      die.bounces++;
-    }
-    if (die.py < WALL) {
-      die.py = WALL;
-      die.vy = Math.abs(die.vy) * RESTITUTION;
-      die.w = [die.w[0] * 0.6, die.w[1] * 0.6, die.w[2] * 0.6];
-      die.bounces++;
-    } else if (die.py > H - WALL) {
-      die.py = H - WALL;
-      die.vy = -Math.abs(die.vy) * RESTITUTION;
+    const [nx, nvx, bx] = bounceAxis(die.px, die.vx, WALL, W - WALL);
+    const [ny, nvy, by] = bounceAxis(die.py, die.vy, WALL, H - WALL);
+    die.px = nx;
+    die.vx = nvx;
+    die.py = ny;
+    die.vy = nvy;
+    if (bx || by) {
       die.w = [die.w[0] * 0.6, die.w[1] * 0.6, die.w[2] * 0.6];
       die.bounces++;
     }
