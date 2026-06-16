@@ -73,6 +73,16 @@ export const unpauseBoard = command(v.string(), async (tableId) => {
   await dispatchTableEvent(tableId, { type: "board:unpaused" });
 });
 
+export const openTable = command(v.string(), async (tableId) => {
+  requireDm();
+  await dispatchTableEvent(tableId, { type: "board:opened" });
+});
+
+export const closeTable = command(v.string(), async (tableId) => {
+  requireDm();
+  await dispatchTableEvent(tableId, { type: "board:closed" });
+});
+
 export const assignTokenOwner = command(
   v.object({ tableId: v.string(), tokenId: v.string(), owner: v.nullable(v.string()) }),
   async (arg) => {

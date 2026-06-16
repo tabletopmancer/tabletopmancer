@@ -65,7 +65,12 @@
   class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-gray-100"
 >
   <div class="w-full max-w-sm space-y-6 rounded-xl bg-white/10 p-8 shadow-xl backdrop-blur">
-    {#if !playerState}
+    {#if !playerState && !data.open}
+      <div class="space-y-4 text-center">
+        <h1 class="text-2xl font-semibold">Table closed</h1>
+        <p class="text-white/70">This table is not open to new players right now.</p>
+      </div>
+    {:else if !playerState}
       <h1 class="text-center text-2xl font-semibold">Join the table</h1>
       <form method="POST" action="?/join" use:enhance class="space-y-4">
         <div>

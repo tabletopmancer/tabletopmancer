@@ -95,6 +95,7 @@ declare global {
     rollHistory: DiceRoll[];
     players: Player[];
     paused: boolean;
+    open: boolean;
   };
 
   type TableEvent =
@@ -114,7 +115,9 @@ declare global {
     | { type: "player:denied"; playerId: string }
     | { type: "player:revoked"; playerId: string }
     | { type: "board:paused" }
-    | { type: "board:unpaused" };
+    | { type: "board:unpaused" }
+    | { type: "board:opened" }
+    | { type: "board:closed" };
 }
 
 export {};

@@ -106,6 +106,10 @@ const persisters = {
     db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('paused', 'true')").run(),
   "board:unpaused": (db) =>
     db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('paused', 'false')").run(),
+  "board:opened": (db) =>
+    db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('open', 'true')").run(),
+  "board:closed": (db) =>
+    db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('open', 'false')").run(),
   ping: () => {},
 } satisfies { [K in TableEvent["type"]]: Persister<K> };
 

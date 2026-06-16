@@ -65,6 +65,12 @@ const handlers = {
   "board:unpaused": (state) => {
     state.paused = false;
   },
+  "board:opened": (state) => {
+    state.open = true;
+  },
+  "board:closed": (state) => {
+    state.open = false;
+  },
 } satisfies { [K in TableEvent["type"]]: Handler<K> };
 
 export function applyTableEvent(state: BoardState, event: TableEvent): void {

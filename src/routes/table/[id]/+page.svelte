@@ -25,7 +25,7 @@
   import Table from "$lib/components/Table.svelte";
   import { applyTableEvent } from "$lib/apply-table-event.js";
   import { activateInitiative } from "$lib/initiative.remote";
-  import { pauseBoard, pingTable, unpauseBoard } from "$lib/table.remote";
+  import { closeTable, openTable, pauseBoard, pingTable, unpauseBoard } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -37,6 +37,7 @@
     rollHistory: [],
     players: [],
     paused: false,
+    open: false,
   });
 
   let pings = $state<Array<{ id: string; position: Position }>>([]);
@@ -280,7 +281,20 @@
         </button>
       </li>
       <li>
-        <button class="cursor-pointer" aria-label="Open the session">
+        <button
+          class="cursor-pointer {boardState.open
+            ? 'text-amber-300'
+            : 'text-gray-300 hover:text-gray-100'}"
+          aria-label={boardState.open ? "Close the table to new players" : "Open the table to join"}
+          aria-pressed={boardState.open}
+          onclick={async () => {
+            if (boardState.open) {
+              await closeTable(data.tableId);
+            } else {
+              await openTable(data.tableId);
+            }
+          }}
+        >
           <Rss />
         </button>
       </li>

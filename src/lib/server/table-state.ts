@@ -100,7 +100,10 @@ function loadStateFromDb(tableId: string): BoardState {
   const pausedRow = db.prepare("SELECT value FROM board_meta WHERE key = 'paused'").get() as any;
   const paused = pausedRow?.value === "true";
 
-  return { tokens, maps, initiative, rollHistory, players, paused };
+  const openRow = db.prepare("SELECT value FROM board_meta WHERE key = 'open'").get() as any;
+  const open = openRow?.value === "true";
+
+  return { tokens, maps, initiative, rollHistory, players, paused, open };
 }
 
 function loadState(tableId: string): BoardState {

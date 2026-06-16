@@ -30,7 +30,15 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
 let state: BoardState;
 
 beforeEach(() => {
-  state = { tokens: [], maps: [], initiative: null, rollHistory: [], players: [], paused: false };
+  state = {
+    tokens: [],
+    maps: [],
+    initiative: null,
+    rollHistory: [],
+    players: [],
+    paused: false,
+    open: false,
+  };
 });
 
 describe("token events", () => {
@@ -168,5 +176,12 @@ describe("board events", () => {
     expect(state.paused).toBe(true);
     applyTableEvent(state, { type: "board:unpaused" });
     expect(state.paused).toBe(false);
+  });
+
+  it("opens and closes the table", () => {
+    applyTableEvent(state, { type: "board:opened" });
+    expect(state.open).toBe(true);
+    applyTableEvent(state, { type: "board:closed" });
+    expect(state.open).toBe(false);
   });
 });

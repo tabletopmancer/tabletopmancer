@@ -36,13 +36,16 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   if (!(await tableExists(tableId))) error(404, "Table not found");
   const player = await findExistingPlayer(tableId, cookies.get("ttm_token"));
   if (player?.status === "approved") redirect(302, `/table/${tableId}`);
-  return { player, tableId };
+  const { open } = await getState(tableId);
+  return { player, tableId, open };
 };
 
 export const actions: Actions = {
   join: async ({ params, cookies, request }) => {
     const { id: tableId } = params;
     if (!(await tableExists(tableId))) error(404, "Table not found");
+    const { open } = await getState(tableId);
+    if (!open) return { error: "This table is not open to new players" };
     const data = await request.formData();
     const name = (data.get("name") as string | null)?.trim();
 
