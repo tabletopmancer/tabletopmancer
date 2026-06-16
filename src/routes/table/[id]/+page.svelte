@@ -112,7 +112,7 @@
 </script>
 
 <main
-  class="h-screen w-screen bg-gradient-to-br from-blue-800 via-violet-900 to-gray-800 text-gray-100"
+  class="h-screen w-screen bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-gray-100"
 >
   <Table
     {boardState}

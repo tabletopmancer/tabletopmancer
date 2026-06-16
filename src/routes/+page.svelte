@@ -20,7 +20,7 @@
 </svelte:head>
 
 <main
-  class="min-h-screen bg-gradient-to-br from-blue-800 via-violet-900 to-gray-800 p-4 text-gray-100"
+  class="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 p-4 text-gray-100"
 >
   <ul class="mb-6 flex justify-end gap-4" role="navigation">
     <li>
