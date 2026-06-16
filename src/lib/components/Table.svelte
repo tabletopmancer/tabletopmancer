@@ -20,6 +20,9 @@
     tableId,
     pings = [],
     onping,
+    fogToolActive = false,
+    brushMode = "reveal",
+    brushSize = 50,
   }: {
     boardState: BoardState;
     role: "DM" | "PLAYER";
@@ -27,19 +30,10 @@
     tableId: string;
     pings?: Array<{ id: string; position: Position }>;
     onping?: (position: Position) => void;
+    fogToolActive?: boolean;
+    brushMode?: "reveal" | "hide";
+    brushSize?: number;
   } = $props();
-
-  let fogToolActive = $state(false);
-  let brushMode = $state<"reveal" | "hide">("reveal");
-  let brushSize = $state(50);
-
-  const BRUSH_SIZES: Array<{ label: string; value: number }> = [
-    { label: "S", value: 25 },
-    { label: "M", value: 50 },
-    { label: "L", value: 100 },
-    { label: "XL", value: 150 },
-    { label: "XXL", value: 200 },
-  ];
 
   let board = $state<{ screenToBoard: (clientX: number, clientY: number) => Position } | null>(
     null,
@@ -156,50 +150,6 @@
     {/each}
   </Board>
 </div>
-
-{#if role === "DM"}
-  <div class="fog-toolbar">
-    <button
-      class="fog-mode-btn"
-      class:fog-active={fogToolActive}
-      onclick={() => (fogToolActive = !fogToolActive)}
-      title="Toggle fog brush"
-    >
-      <span class="fog-icon">{fogToolActive ? "🌑" : "🌕"}</span>
-      Fog
-    </button>
-
-    {#if fogToolActive}
-      <div class="fog-divider"></div>
-      <button
-        class="fog-mode-btn"
-        class:fog-active={brushMode === "reveal"}
-        onclick={() => (brushMode = "reveal")}
-        title="Reveal fog"
-      >
-        ☀
-      </button>
-      <button
-        class="fog-mode-btn"
-        class:fog-active={brushMode === "hide"}
-        onclick={() => (brushMode = "hide")}
-        title="Hide fog"
-      >
-        ✦
-      </button>
-      <div class="fog-divider"></div>
-      {#each BRUSH_SIZES as s}
-        <button
-          class="fog-size-btn"
-          class:fog-active={brushSize === s.value}
-          onclick={() => (brushSize = s.value)}
-        >
-          {s.label}
-        </button>
-      {/each}
-    {/if}
-  </div>
-{/if}
 
 {#if contextMenu}
   <div
@@ -365,53 +315,5 @@
   .context-divider {
     border-color: #374151;
     margin: 4px 0;
-  }
-
-  .fog-toolbar {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    translate: -50% 0;
-    z-index: 40;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    padding: 6px 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  }
-
-  .fog-mode-btn,
-  .fog-size-btn {
-    background: none;
-    border: none;
-    border-radius: 6px;
-    color: #9ca3af;
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 4px 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .fog-mode-btn:hover,
-  .fog-size-btn:hover {
-    background: #374151;
-    color: #f3f4f6;
-  }
-
-  .fog-active {
-    background: #4c1d95 !important;
-    color: #ddd6fe !important;
-  }
-
-  .fog-divider {
-    width: 1px;
-    height: 20px;
-    background: #374151;
-    margin: 0 4px;
   }
 </style>

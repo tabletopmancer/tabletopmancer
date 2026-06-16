@@ -1,7 +1,21 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { History, Link, Pause, Play, Rss, Swords, UserCog, UserPlus, X } from "@lucide/svelte";
+  import {
+    Cloud,
+    Dices,
+    Eye,
+    EyeOff,
+    History,
+    Link,
+    Pause,
+    Play,
+    Rss,
+    Swords,
+    UserCog,
+    UserPlus,
+    X,
+  } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
   import DiceAnimation from "$lib/components/DiceAnimation.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
@@ -50,7 +64,21 @@
   let showInviteLink = $state(false);
   let showRollHistory = $state(false);
   let showInitiative = $state(false);
+  let showDice = $state(false);
+  let showFog = $state(false);
   let inviteCopied = $state(false);
+
+  let fogToolActive = $state(false);
+  let brushMode = $state<"reveal" | "hide">("reveal");
+  let brushSize = $state(50);
+
+  const BRUSH_SIZES: Array<{ label: string; value: number }> = [
+    { label: "S", value: 25 },
+    { label: "M", value: 50 },
+    { label: "L", value: 100 },
+    { label: "XL", value: 150 },
+    { label: "XXL", value: 200 },
+  ];
 
   const inviteUrl = $derived(
     typeof window !== "undefined"
@@ -121,12 +149,89 @@
     tableId={data.tableId}
     {pings}
     onping={sendPing}
+    {fogToolActive}
+    {brushMode}
+    {brushSize}
   />
 
   {#if data.role === "DM"}
     <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
-      <li>
-        <DiceRoller tableId={data.tableId} role={data.role} />
+      <li class="relative">
+        <button
+          class="cursor-pointer {fogToolActive
+            ? 'text-amber-300'
+            : 'text-gray-300 hover:text-gray-100'}"
+          aria-label="Fog controls"
+          onclick={() => (showFog = !showFog)}
+        >
+          <Cloud size={20} />
+        </button>
+        {#if showFog}
+          <div
+            class="absolute right-0 top-full mt-2 w-44 rounded-xl bg-gray-900 p-3 shadow-xl"
+            role="dialog"
+            aria-label="Fog controls"
+          >
+            <label
+              class="flex cursor-pointer items-center justify-between text-sm font-semibold text-gray-100 select-none"
+            >
+              Fog brush
+              <input type="checkbox" bind:checked={fogToolActive} class="accent-violet-400" />
+            </label>
+            {#if fogToolActive}
+              <div class="mt-3 flex gap-1">
+                <button
+                  class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
+                  'reveal'
+                    ? 'bg-violet-700 text-violet-100'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                  onclick={() => (brushMode = "reveal")}
+                >
+                  <Eye size={14} /> Reveal
+                </button>
+                <button
+                  class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
+                  'hide'
+                    ? 'bg-violet-700 text-violet-100'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                  onclick={() => (brushMode = "hide")}
+                >
+                  <EyeOff size={14} /> Hide
+                </button>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-1">
+                {#each BRUSH_SIZES as s}
+                  <button
+                    class="flex-1 rounded px-2 py-1 text-xs {brushSize === s.value
+                      ? 'bg-violet-700 text-violet-100'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                    onclick={() => (brushSize = s.value)}
+                  >
+                    {s.label}
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </li>
+      <li class="relative">
+        <button
+          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          aria-label="Roll dice"
+          onclick={() => (showDice = !showDice)}
+        >
+          <Dices size={20} />
+        </button>
+        {#if showDice}
+          <div
+            class="absolute right-0 top-full mt-2 rounded-xl bg-gray-900 p-3 shadow-xl"
+            role="dialog"
+            aria-label="Dice roller"
+          >
+            <DiceRoller tableId={data.tableId} role={data.role} />
+          </div>
+        {/if}
       </li>
       <li>
         <button
