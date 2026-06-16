@@ -156,7 +156,10 @@
   />
 
   {#if data.role === "DM"}
-    <ul class="fixed top-0 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
+    <ul
+      class="fixed top-0 z-30 mb-6 flex w-full items-center justify-end gap-4 p-4"
+      role="navigation"
+    >
       <li class="relative">
         <button
           class="cursor-pointer {fogToolActive

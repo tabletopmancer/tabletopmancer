@@ -43,7 +43,7 @@
   let filtered = $derived(active ? assets.filter((a) => a.mimetype.match(active!)) : assets);
 </script>
 
-<div class="fixed bottom-4 left-0 w-full px-4" role="region" aria-roledescription="Assets">
+<div class="fixed bottom-4 left-0 z-30 w-full px-4" role="region" aria-roledescription="Assets">
   <div class="container mx-auto rounded-lg bg-neutral-800 shadow-lg">
     <div class="flex border-b border-neutral-700" role="tablist">
       {#each categories as cat}
