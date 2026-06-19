@@ -30,7 +30,7 @@
   aria-label="Roll history"
 >
   <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-    <span class="text-sm font-semibold text-zinc-100">Roll History</span>
+    <span class="font-display text-sm font-semibold tracking-wide text-zinc-100">Roll History</span>
     <button onclick={onclose} aria-label="Close" class="text-zinc-400 hover:text-zinc-100">
       <X size={16} />
     </button>
@@ -54,10 +54,10 @@
                 <Lock size={10} class="text-violet-400" />
               {/if}
             </span>
-            <span class="text-lg font-bold text-violet-300">{roll.total}</span>
+            <span class="font-mono text-lg font-bold text-violet-300">{roll.total}</span>
           </div>
           <div class="mt-0.5 text-xs text-zinc-400">
-            <span class="text-zinc-300">{roll.formula}</span>
+            <span class="font-mono text-zinc-300">{roll.formula}</span>
             {#if roll.dice.length > 1 || roll.modifier !== 0}
               <span class="ml-1">({formatBreakdown(roll)})</span>
             {/if}

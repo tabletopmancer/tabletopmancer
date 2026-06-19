@@ -62,12 +62,14 @@
 >
   <div class="flex h-[28rem] w-full max-w-2xl overflow-hidden rounded-xl bg-zinc-900 shadow-xl">
     <nav class="flex w-40 shrink-0 flex-col gap-1 border-r border-white/10 bg-black/20 p-3">
-      <h2 class="mb-2 px-2 text-sm font-semibold text-zinc-100">Settings</h2>
+      <h2 class="mb-2 px-2 font-display text-sm font-semibold tracking-wide text-zinc-100">
+        Settings
+      </h2>
       {#each TABS as t (t.id)}
         <button
           onclick={() => (tab = t.id)}
           class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm {tab === t.id
-            ? 'bg-violet-700 text-violet-100'
+            ? 'bg-violet-500/20 text-violet-200'
             : 'text-zinc-300 hover:bg-white/5 hover:text-zinc-100'}"
         >
           <t.icon size={16} />

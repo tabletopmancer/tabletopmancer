@@ -57,7 +57,7 @@
   <ul class="grid grid-cols-1 gap-4">
     {#each data.tables as table}
       <a class="space-y-2 rounded bg-zinc-50 p-4 text-violet-700" href="/table/{table.id}">
-        <h2 class="text-lg">{table.name}</h2>
+        <h2 class="font-display text-lg font-semibold">{table.name}</h2>
         <p class="text-right text-xs">{table.lastPlayed}</p>
       </a>
     {/each}

@@ -149,7 +149,7 @@
       <li class="relative">
         <button
           class="cursor-pointer {fogToolActive
-            ? 'text-amber-300'
+            ? 'text-violet-300'
             : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Fog controls"
           onclick={() => (showFog = !showFog)}
@@ -173,7 +173,7 @@
                 <button
                   class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
                   'reveal'
-                    ? 'bg-violet-700 text-violet-100'
+                    ? 'bg-violet-500/20 text-violet-200'
                     : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                   onclick={() => (brushMode = "reveal")}
                 >
@@ -182,7 +182,7 @@
                 <button
                   class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
                   'hide'
-                    ? 'bg-violet-700 text-violet-100'
+                    ? 'bg-violet-500/20 text-violet-200'
                     : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                   onclick={() => (brushMode = "hide")}
                 >
@@ -193,7 +193,7 @@
                 {#each BRUSH_SIZES as s}
                   <button
                     class="flex-1 rounded px-2 py-1 text-xs {brushSize === s.value
-                      ? 'bg-violet-700 text-violet-100'
+                      ? 'bg-violet-500/20 text-violet-200'
                       : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                     onclick={() => (brushSize = s.value)}
                   >
@@ -235,7 +235,7 @@
       <li>
         <button
           class="cursor-pointer {boardState.initiative
-            ? 'text-amber-300'
+            ? 'text-violet-300'
             : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Toggle initiative tracker"
           onclick={async () => {
@@ -251,7 +251,7 @@
       <li>
         <button
           class="cursor-pointer {boardState.paused
-            ? 'text-amber-300'
+            ? 'text-violet-300'
             : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label={boardState.paused ? "Unpause game" : "Pause game"}
           onclick={async () => {
@@ -338,7 +338,7 @@
       {#if boardState.initiative}
         <button
           class="cursor-pointer {showInitiative
-            ? 'text-amber-300'
+            ? 'text-violet-300'
             : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Toggle initiative tracker"
           onclick={() => (showInitiative = !showInitiative)}

@@ -40,7 +40,7 @@
 >
   <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
     <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-zinc-100">Initiative</span>
+      <span class="font-display text-sm font-semibold tracking-wide text-zinc-100">Initiative</span>
       <div class="flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5">
         {#if role === "DM"}
           <button
@@ -91,7 +91,7 @@
           </div>
           <div class="flex shrink-0 items-center gap-2">
             {#if entry.initiative !== null}
-              <span class="text-lg font-bold text-violet-300">{entry.initiative}</span>
+              <span class="font-mono text-lg font-bold text-violet-300">{entry.initiative}</span>
             {:else}
               <span class="text-sm text-zinc-500">—</span>
             {/if}

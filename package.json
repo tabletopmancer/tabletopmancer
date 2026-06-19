@@ -21,6 +21,9 @@
   },
   "devDependencies": {
     "@3d-dice/dice-box-threejs": "^0.0.12",
+    "@fontsource-variable/cinzel": "^5.2.8",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@lucide/svelte": "^1.17.0",
     "@popperjs/core": "^2.11.8",
     "@sveltejs/adapter-node": "^5.0.0",
