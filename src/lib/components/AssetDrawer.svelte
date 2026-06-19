@@ -44,16 +44,16 @@
 </script>
 
 <div class="fixed bottom-4 left-0 z-30 w-full px-4" role="region" aria-roledescription="Assets">
-  <div class="container mx-auto rounded-lg bg-neutral-800 shadow-lg">
-    <div class="flex border-b border-neutral-700" role="tablist">
+  <div class="container mx-auto rounded-lg bg-zinc-800 shadow-lg">
+    <div class="flex border-b border-zinc-700" role="tablist">
       {#each categories as cat}
         {@const CategoryIcon = cat.icon}
         <button
-          class="-mb-px flex cursor-pointer items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-colors hover:text-neutral-100"
+          class="-mb-px flex cursor-pointer items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition-colors hover:text-zinc-100"
           class:border-violet-400={active === cat.filter}
           class:text-violet-400={active === cat.filter}
           class:border-transparent={active !== cat.filter}
-          class:text-neutral-400={active !== cat.filter}
+          class:text-zinc-400={active !== cat.filter}
           onclick={() => (active = cat.filter === active ? null : cat.filter)}
           role="tab"
           aria-selected={active === cat.filter}
@@ -67,7 +67,7 @@
     <div class="scrollbar-none flex min-h-20 w-full items-center gap-4 overflow-x-scroll px-4 py-3">
       {#each filtered as asset}
         <div
-          class="relative flex aspect-square h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-neutral-500 text-center break-all select-none *:pointer-events-none"
+          class="relative flex aspect-square h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-500 text-center break-all select-none *:pointer-events-none"
           use:tooltip={asset.name}
           use:draggable={asset}
         >

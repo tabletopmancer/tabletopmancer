@@ -38,10 +38,10 @@
     onkeydown={handleKeydown}
     placeholder="2d6+3"
     aria-label="Dice formula"
-    class="w-20 rounded bg-white/10 px-2 py-1 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-violet-400"
+    class="w-20 rounded bg-white/10 px-2 py-1 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-400"
   />
   {#if role === "DM"}
-    <label class="flex cursor-pointer items-center gap-1 text-xs text-gray-400 select-none">
+    <label class="flex cursor-pointer items-center gap-1 text-xs text-zinc-400 select-none">
       <input type="checkbox" bind:checked={isPrivate} class="accent-violet-400" />
       Private
     </label>
@@ -50,7 +50,7 @@
     onclick={roll}
     disabled={rolling}
     aria-label="Roll dice"
-    class="cursor-pointer text-gray-300 hover:text-gray-100 disabled:opacity-50"
+    class="cursor-pointer text-zinc-300 hover:text-zinc-100 disabled:opacity-50"
   >
     <Dices size={18} />
   </button>

@@ -62,7 +62,7 @@
 </script>
 
 <main
-  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-gray-100"
+  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 text-zinc-100"
 >
   <div class="w-full max-w-sm space-y-6 rounded-xl bg-white/10 p-8 shadow-xl backdrop-blur">
     {#if !playerState && !data.open}

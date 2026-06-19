@@ -25,20 +25,20 @@
 </script>
 
 <div
-  class="fixed right-4 top-14 z-40 flex w-72 flex-col rounded-xl bg-gray-900 shadow-xl"
+  class="fixed right-4 top-14 z-40 flex w-72 flex-col rounded-xl bg-zinc-900 shadow-xl"
   role="dialog"
   aria-label="Roll history"
 >
   <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-    <span class="text-sm font-semibold text-gray-100">Roll History</span>
-    <button onclick={onclose} aria-label="Close" class="text-gray-400 hover:text-gray-100">
+    <span class="text-sm font-semibold text-zinc-100">Roll History</span>
+    <button onclick={onclose} aria-label="Close" class="text-zinc-400 hover:text-zinc-100">
       <X size={16} />
     </button>
   </div>
 
   <div class="max-h-96 overflow-y-auto p-2">
     {#if visibleRolls.length === 0}
-      <p class="px-3 py-4 text-center text-xs text-gray-500">No rolls yet.</p>
+      <p class="px-3 py-4 text-center text-xs text-zinc-500">No rolls yet.</p>
     {:else}
       {#each visibleRolls as roll (roll.id)}
         <div
@@ -48,7 +48,7 @@
           style={!roll.private ? "background: rgba(255,255,255,0.05)" : ""}
         >
           <div class="flex items-center justify-between">
-            <span class="flex items-center gap-1 font-medium text-gray-200">
+            <span class="flex items-center gap-1 font-medium text-zinc-200">
               {roll.player}
               {#if roll.private}
                 <Lock size={10} class="text-violet-400" />
@@ -56,8 +56,8 @@
             </span>
             <span class="text-lg font-bold text-violet-300">{roll.total}</span>
           </div>
-          <div class="mt-0.5 text-xs text-gray-400">
-            <span class="text-gray-300">{roll.formula}</span>
+          <div class="mt-0.5 text-xs text-zinc-400">
+            <span class="text-zinc-300">{roll.formula}</span>
             {#if roll.dice.length > 1 || roll.modifier !== 0}
               <span class="ml-1">({formatBreakdown(roll)})</span>
             {/if}

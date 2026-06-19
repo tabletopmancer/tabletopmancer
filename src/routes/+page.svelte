@@ -20,7 +20,7 @@
 </svelte:head>
 
 <main
-  class="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 p-4 text-gray-100"
+  class="min-h-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 p-4 text-zinc-100"
 >
   <ul class="mb-6 flex justify-end gap-4" role="navigation">
     <li>
@@ -40,7 +40,7 @@
       }}
     >
       <input
-        class="flex-1 rounded border border-gray-400 bg-white/10 px-3 py-1 text-gray-100 placeholder-gray-400 focus:outline-none"
+        class="flex-1 rounded border border-zinc-400 bg-white/10 px-3 py-1 text-zinc-100 placeholder-zinc-400 focus:outline-none"
         type="text"
         placeholder="Table name"
         bind:value={tableName}
@@ -56,7 +56,7 @@
 
   <ul class="grid grid-cols-1 gap-4">
     {#each data.tables as table}
-      <a class="space-y-2 rounded bg-neutral-50 p-4 text-blue-800" href="/table/{table.id}">
+      <a class="space-y-2 rounded bg-zinc-50 p-4 text-violet-700" href="/table/{table.id}">
         <h2 class="text-lg">{table.name}</h2>
         <p class="text-right text-xs">{table.lastPlayed}</p>
       </a>

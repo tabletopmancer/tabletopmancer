@@ -127,7 +127,7 @@
 </script>
 
 <main
-  class="h-screen w-screen bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-gray-100"
+  class="h-screen w-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 text-zinc-100"
 >
   <Table
     {boardState}
@@ -150,7 +150,7 @@
         <button
           class="cursor-pointer {fogToolActive
             ? 'text-amber-300'
-            : 'text-gray-300 hover:text-gray-100'}"
+            : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Fog controls"
           onclick={() => (showFog = !showFog)}
         >
@@ -158,12 +158,12 @@
         </button>
         {#if showFog}
           <div
-            class="absolute right-0 top-full mt-2 w-44 rounded-xl bg-gray-900 p-3 shadow-xl"
+            class="absolute right-0 top-full mt-2 w-44 rounded-xl bg-zinc-900 p-3 shadow-xl"
             role="dialog"
             aria-label="Fog controls"
           >
             <label
-              class="flex cursor-pointer items-center justify-between text-sm font-semibold text-gray-100 select-none"
+              class="flex cursor-pointer items-center justify-between text-sm font-semibold text-zinc-100 select-none"
             >
               Fog brush
               <input type="checkbox" bind:checked={fogToolActive} class="accent-violet-400" />
@@ -174,7 +174,7 @@
                   class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
                   'reveal'
                     ? 'bg-violet-700 text-violet-100'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                    : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                   onclick={() => (brushMode = "reveal")}
                 >
                   <Eye size={14} /> Reveal
@@ -183,7 +183,7 @@
                   class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {brushMode ===
                   'hide'
                     ? 'bg-violet-700 text-violet-100'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                    : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                   onclick={() => (brushMode = "hide")}
                 >
                   <EyeOff size={14} /> Hide
@@ -194,7 +194,7 @@
                   <button
                     class="flex-1 rounded px-2 py-1 text-xs {brushSize === s.value
                       ? 'bg-violet-700 text-violet-100'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'}"
+                      : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
                     onclick={() => (brushSize = s.value)}
                   >
                     {s.label}
@@ -207,7 +207,7 @@
       </li>
       <li class="relative">
         <button
-          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          class="cursor-pointer text-zinc-300 hover:text-zinc-100"
           aria-label="Roll dice"
           onclick={() => (showDice = !showDice)}
         >
@@ -215,7 +215,7 @@
         </button>
         {#if showDice}
           <div
-            class="absolute right-0 top-full mt-2 rounded-xl bg-gray-900 p-3 shadow-xl"
+            class="absolute right-0 top-full mt-2 rounded-xl bg-zinc-900 p-3 shadow-xl"
             role="dialog"
             aria-label="Dice roller"
           >
@@ -225,7 +225,7 @@
       </li>
       <li>
         <button
-          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          class="cursor-pointer text-zinc-300 hover:text-zinc-100"
           aria-label="Toggle roll history"
           onclick={() => (showRollHistory = !showRollHistory)}
         >
@@ -236,7 +236,7 @@
         <button
           class="cursor-pointer {boardState.initiative
             ? 'text-amber-300'
-            : 'text-gray-300 hover:text-gray-100'}"
+            : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Toggle initiative tracker"
           onclick={async () => {
             if (!boardState.initiative) {
@@ -252,7 +252,7 @@
         <button
           class="cursor-pointer {boardState.paused
             ? 'text-amber-300'
-            : 'text-gray-300 hover:text-gray-100'}"
+            : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label={boardState.paused ? "Unpause game" : "Pause game"}
           onclick={async () => {
             if (boardState.paused) {
@@ -271,7 +271,7 @@
       </li>
       <li class="relative">
         <button
-          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          class="cursor-pointer text-zinc-300 hover:text-zinc-100"
           aria-label="Settings"
           onclick={() => (showSettings = !showSettings)}
         >
@@ -279,7 +279,7 @@
         </button>
         {#if pendingCount > 0}
           <span
-            class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-gray-900"
+            class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-zinc-900"
           >
             {pendingCount}
           </span>
@@ -317,7 +317,7 @@
 
   {#if data.role === "PLAYER" && boardState.paused}
     <div
-      class="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-lg"
+      class="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-zinc-900 shadow-lg"
     >
       Game paused by DM
     </div>
@@ -325,11 +325,11 @@
 
   {#if data.role === "PLAYER"}
     <div
-      class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-gray-900/80 px-3 py-2 shadow-lg"
+      class="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-xl bg-zinc-900/80 px-3 py-2 shadow-lg"
     >
       <DiceRoller tableId={data.tableId} role={data.role} />
       <button
-        class="cursor-pointer text-gray-300 hover:text-gray-100"
+        class="cursor-pointer text-zinc-300 hover:text-zinc-100"
         aria-label="Toggle roll history"
         onclick={() => (showRollHistory = !showRollHistory)}
       >
@@ -339,7 +339,7 @@
         <button
           class="cursor-pointer {showInitiative
             ? 'text-amber-300'
-            : 'text-gray-300 hover:text-gray-100'}"
+            : 'text-zinc-300 hover:text-zinc-100'}"
           aria-label="Toggle initiative tracker"
           onclick={() => (showInitiative = !showInitiative)}
         >
