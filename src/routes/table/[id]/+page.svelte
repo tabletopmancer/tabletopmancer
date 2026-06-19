@@ -7,25 +7,21 @@
     Eye,
     EyeOff,
     History,
-    Link,
     Pause,
     Play,
-    Rss,
+    Settings,
     Swords,
-    UserCog,
-    UserPlus,
-    X,
   } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
   import DiceAnimation from "$lib/components/DiceAnimation.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
   import InitiativeTracker from "$lib/components/InitiativeTracker.svelte";
-  import PlayerManagement from "$lib/components/PlayerManagement.svelte";
   import RollHistory from "$lib/components/RollHistory.svelte";
+  import SettingsModal from "$lib/components/SettingsModal.svelte";
   import Table from "$lib/components/Table.svelte";
   import { applyTableEvent } from "$lib/apply-table-event.js";
   import { activateInitiative } from "$lib/initiative.remote";
-  import { closeTable, openTable, pauseBoard, pingTable, unpauseBoard } from "$lib/table.remote";
+  import { pauseBoard, pingTable, unpauseBoard } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
 
   let { data } = $props();
@@ -61,13 +57,11 @@
     await pingTable({ tableId: data.tableId, position });
   }
 
-  let showPlayerManagement = $state(false);
-  let showInviteLink = $state(false);
+  let showSettings = $state(false);
   let showRollHistory = $state(false);
   let showInitiative = $state(false);
   let showDice = $state(false);
   let showFog = $state(false);
-  let inviteCopied = $state(false);
 
   let fogToolActive = $state(false);
   let brushMode = $state<"reveal" | "hide">("reveal");
@@ -88,14 +82,6 @@
   );
 
   const pendingCount = $derived(boardState.players.filter((p) => p.status === "pending").length);
-
-  async function copyInviteLink() {
-    await navigator.clipboard.writeText(inviteUrl);
-    inviteCopied = true;
-    setTimeout(() => {
-      inviteCopied = false;
-    }, 2000);
-  }
 
   function isFullState(value: BoardState | TableEvent): value is BoardState {
     return !("type" in value);
@@ -283,40 +269,13 @@
           {/if}
         </button>
       </li>
-      <li>
-        <button
-          class="cursor-pointer {boardState.open
-            ? 'text-amber-300'
-            : 'text-gray-300 hover:text-gray-100'}"
-          aria-label={boardState.open ? "Close the table to new players" : "Open the table to join"}
-          aria-pressed={boardState.open}
-          onclick={async () => {
-            if (boardState.open) {
-              await closeTable(data.tableId);
-            } else {
-              await openTable(data.tableId);
-            }
-          }}
-        >
-          <Rss />
-        </button>
-      </li>
-      <li>
-        <button
-          class="cursor-pointer"
-          aria-label="Invite players"
-          onclick={() => (showInviteLink = !showInviteLink)}
-        >
-          <UserPlus />
-        </button>
-      </li>
       <li class="relative">
         <button
-          class="cursor-pointer"
-          aria-label="Manage players"
-          onclick={() => (showPlayerManagement = !showPlayerManagement)}
+          class="cursor-pointer text-gray-300 hover:text-gray-100"
+          aria-label="Settings"
+          onclick={() => (showSettings = !showSettings)}
         >
-          <UserCog />
+          <Settings size={20} />
         </button>
         {#if pendingCount > 0}
           <span
@@ -328,43 +287,13 @@
       </li>
     </ul>
 
-    {#if showInviteLink}
-      <div
-        class="fixed right-4 top-14 z-40 w-72 rounded-xl bg-gray-900 p-4 shadow-xl"
-        role="dialog"
-        aria-label="Invite link"
-      >
-        <div class="mb-2 flex items-center justify-between">
-          <span class="text-sm font-semibold text-gray-100">Invite link</span>
-          <button
-            onclick={() => (showInviteLink = false)}
-            aria-label="Close"
-            class="text-gray-400 hover:text-gray-100"
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <div class="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-          <span class="flex-1 truncate text-xs text-gray-300">{inviteUrl}</span>
-          <button
-            onclick={copyInviteLink}
-            aria-label="Copy link"
-            class="shrink-0 text-gray-400 hover:text-gray-100"
-          >
-            <Link size={14} />
-          </button>
-        </div>
-        {#if inviteCopied}
-          <p class="mt-1 text-center text-xs text-green-400">Copied!</p>
-        {/if}
-      </div>
-    {/if}
-
-    {#if showPlayerManagement}
-      <PlayerManagement
+    {#if showSettings}
+      <SettingsModal
         tableId={data.tableId}
         players={boardState.players}
-        onclose={() => (showPlayerManagement = false)}
+        open={boardState.open}
+        {inviteUrl}
+        onclose={() => (showSettings = false)}
       />
     {/if}
 
