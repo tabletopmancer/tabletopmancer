@@ -9,6 +9,7 @@ const tooltip: Action<HTMLElement, string | undefined> = (node, content) => {
   let popper: Instance;
 
   container.style.pointerEvents = "none";
+  container.style.zIndex = "50";
 
   function show() {
     if (component) {
