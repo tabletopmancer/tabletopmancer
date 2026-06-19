@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Package Manager
+
+This project uses **pnpm**. Always use `pnpm` (e.g. `pnpm add`, `pnpm install`, `pnpm run check`) — never `npm` or `yarn`.
+
 ## Pull Request Guidelines
 
 When creating a PR that is related to a GitHub issue, always include `Closes #<issue-number>` in the PR description body. This automatically closes the linked issue when the PR is merged.

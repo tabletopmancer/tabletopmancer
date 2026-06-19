@@ -1,4 +1,7 @@
 {
+  "permissions": {
+    "deny": ["Bash(npm *)", "Bash(npm:*)", "Bash(yarn *)", "Bash(yarn:*)"]
+  },
   "hooks": {
     "PostToolUse": [
       {
