@@ -21,7 +21,7 @@
     rolling = true;
     try {
       await rollDice({ tableId, formula: f, private: isPrivate });
-      formula = "";
+      if (f === formula.trim()) formula = "";
     } finally {
       rolling = false;
     }
