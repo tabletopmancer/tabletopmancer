@@ -1,4 +1,4 @@
-import { command } from "$app/server";
+import { command, query } from "$app/server";
 import { parseFormula, type ParsedFormula } from "$lib/dice.js";
 import { requireDm, requireParticipant } from "$lib/server/auth.js";
 import { getDb } from "$lib/server/db.js";
@@ -260,7 +260,7 @@ export const actOnPlayer = command(
   },
 );
 
-export const getHistory = command(v.string(), async (tableId) => {
+export const getHistory = query(v.string(), async (tableId) => {
   requireDm();
   const db = getDb(tableId);
   const rows = db
