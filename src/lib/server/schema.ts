@@ -31,6 +31,7 @@ export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS rolls (
     id TEXT PRIMARY KEY,
     player TEXT NOT NULL,
+    color TEXT,
     formula TEXT NOT NULL,
     dice TEXT NOT NULL,
     modifier INTEGER NOT NULL,
@@ -49,6 +50,7 @@ export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS players (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    color TEXT,
     status TEXT NOT NULL
   );
 

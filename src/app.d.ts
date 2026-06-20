@@ -61,6 +61,7 @@ declare global {
   type DiceRoll = {
     id: string;
     player: string;
+    color?: string;
     formula: string;
     dice: number[];
     modifier: number;
@@ -85,6 +86,7 @@ declare global {
   type Player = {
     id: string;
     name: string;
+    color?: string;
     status: "pending" | "approved" | "denied" | "revoked";
   };
 

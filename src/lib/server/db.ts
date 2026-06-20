@@ -9,6 +9,21 @@ const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 const dbCache = new Map<string, DatabaseSync>();
 const MAX_CACHED_DBS = 100;
 
+function hasColumn(db: DatabaseSync, table: string, column: string): boolean {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  return cols.some((c) => c.name === column);
+}
+
+/** Add columns introduced after a table's original `CREATE TABLE` shipped. */
+function migrate(db: DatabaseSync): void {
+  if (!hasColumn(db, "players", "color")) {
+    db.exec("ALTER TABLE players ADD COLUMN color TEXT");
+  }
+  if (!hasColumn(db, "rolls", "color")) {
+    db.exec("ALTER TABLE rolls ADD COLUMN color TEXT");
+  }
+}
+
 export function getDb(tableId: string): DatabaseSync {
   const cached = dbCache.get(tableId);
   if (cached) {
@@ -27,6 +42,7 @@ export function getDb(tableId: string): DatabaseSync {
 
   const db = new DatabaseSync(path.join(dir, "db.sqlite"));
   db.exec(SCHEMA);
+  migrate(db);
 
   if (dbCache.size >= MAX_CACHED_DBS) {
     const oldest = dbCache.keys().next().value!;

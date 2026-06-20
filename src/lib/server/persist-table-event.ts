@@ -60,10 +60,11 @@ const persisters = {
   "dice:rolled": (db, event) => {
     const r = event.roll;
     db.prepare(
-      "INSERT OR REPLACE INTO rolls (id, player, formula, dice, modifier, total, private, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT OR REPLACE INTO rolls (id, player, color, formula, dice, modifier, total, private, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     ).run(
       r.id,
       r.player,
+      r.color ?? null,
       r.formula,
       JSON.stringify(r.dice),
       r.modifier,
@@ -87,8 +88,8 @@ const persisters = {
   },
   "player:joined": (db, event) =>
     db
-      .prepare("INSERT OR IGNORE INTO players (id, name, status) VALUES (?, ?, ?)")
-      .run(event.player.id, event.player.name, event.player.status),
+      .prepare("INSERT OR IGNORE INTO players (id, name, color, status) VALUES (?, ?, ?, ?)")
+      .run(event.player.id, event.player.name, event.player.color ?? null, event.player.status),
   "player:approved": (db, event) =>
     db.prepare("UPDATE players SET status = 'approved' WHERE id = ?").run(event.playerId),
   "player:denied": (db, event) =>

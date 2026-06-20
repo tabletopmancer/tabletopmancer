@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Lock, X } from "@lucide/svelte";
+  import { colorForRoll } from "$lib/player-colors.js";
 
   let {
     rollHistory,
@@ -48,7 +49,11 @@
           style={!roll.private ? "background: rgba(255,255,255,0.05)" : ""}
         >
           <div class="flex items-center justify-between">
-            <span class="flex items-center gap-1 font-medium text-zinc-200">
+            <span class="flex items-center gap-1.5 font-medium text-zinc-200">
+              <span
+                class="h-2.5 w-2.5 shrink-0 rounded-full"
+                style="background: {colorForRoll(roll)}"
+              ></span>
               {roll.player}
               {#if roll.private}
                 <Lock size={10} class="text-violet-400" />

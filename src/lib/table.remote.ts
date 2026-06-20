@@ -1,5 +1,6 @@
 import { command } from "$app/server";
 import { parseFormula, type ParsedFormula } from "$lib/dice.js";
+import { colorForPlayer } from "$lib/player-colors.js";
 import { requireDm, requireParticipant } from "$lib/server/auth.js";
 import { getDb } from "$lib/server/db.js";
 import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
@@ -209,6 +210,7 @@ function buildRoll(
   return {
     id: randomUUID(),
     player: player?.name ?? "DM",
+    color: colorForPlayer(player),
     formula,
     dice,
     modifier: parsed.modifier,

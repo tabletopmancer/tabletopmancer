@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Clock, Link, Radio, Users, X } from "@lucide/svelte";
   import { actOnPlayer, closeTable, getHistory, openTable } from "$lib/table.remote";
+  import { colorForPlayer } from "$lib/player-colors.js";
 
   let {
     tableId,
@@ -250,7 +251,13 @@
                     <li
                       class="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2"
                     >
-                      <span class="truncate text-zinc-100">{player.name}</span>
+                      <span class="flex min-w-0 items-center gap-2 text-zinc-100">
+                        <span
+                          class="h-3 w-3 shrink-0 rounded-full"
+                          style="background: {colorForPlayer(player)}"
+                        ></span>
+                        <span class="truncate">{player.name}</span>
+                      </span>
                       <div class="flex shrink-0 items-center gap-2">
                         <span
                           class="rounded px-2 py-0.5 text-xs font-medium {STATUS_STYLES[
