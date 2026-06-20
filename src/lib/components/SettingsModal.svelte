@@ -55,14 +55,20 @@
 </script>
 
 <div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+  class="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
   role="dialog"
   aria-modal="true"
   aria-label="Settings"
 >
-  <div class="flex h-[28rem] w-full max-w-2xl overflow-hidden rounded-xl bg-zinc-900 shadow-xl">
-    <nav class="flex w-40 shrink-0 flex-col gap-1 border-r border-white/10 bg-black/20 p-3">
-      <h2 class="mb-2 px-2 font-display text-sm font-semibold tracking-wide text-zinc-100">
+  <div
+    class="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-zinc-900 shadow-xl sm:h-[36rem] sm:max-h-[90vh] sm:flex-row"
+  >
+    <nav
+      class="flex shrink-0 flex-row items-center gap-1 border-b border-white/10 bg-black/20 p-3 sm:w-44 sm:flex-col sm:items-stretch sm:border-b-0 sm:border-r"
+    >
+      <h2
+        class="hidden px-2 font-display text-sm font-semibold tracking-wide text-zinc-100 sm:mb-2 sm:block"
+      >
         Settings
       </h2>
       {#each TABS as t (t.id)}
