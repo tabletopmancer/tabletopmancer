@@ -75,12 +75,15 @@ async function loadCodexAssets(
 ): Promise<Asset[]> {
   const codexDir = path.join(codexesDir, codex.relativepath);
   const ttmIgnorePatterns = await readTtmIgnore(codexDir);
-  const matches = await glob("**/*.{md,png,jpg,jpeg,webp,uvtt,dd2vtt,json}", {
-    cwd: codexDir,
-    nodir: true,
-    follow: true,
-    ignore: ["codex.json", "campaign.json", ...ttmIgnorePatterns],
-  });
+  const matches = await glob(
+    "**/*.{md,png,jpg,jpeg,webp,uvtt,dd2vtt,json,mp3,ogg,wav,m4a,flac,aac,opus}",
+    {
+      cwd: codexDir,
+      nodir: true,
+      follow: true,
+      ignore: ["codex.json", "campaign.json", ...ttmIgnorePatterns],
+    },
+  );
 
   return Promise.all(
     matches.map(async (file) => {
