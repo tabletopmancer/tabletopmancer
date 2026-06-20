@@ -22,6 +22,11 @@
     if (creating) nameInput?.focus();
   });
 
+  function createErrorMessage(e: unknown): string {
+    const body = (e as { body?: { message?: string } })?.body;
+    return body?.message ?? "Could not create table.";
+  }
+
   async function handleCreate() {
     const name = tableName.trim();
     if (!name || busy) return;
@@ -31,8 +36,7 @@
       const id = await createTable(name);
       goto(`/table/${encodeURIComponent(id)}`);
     } catch (e) {
-      createError =
-        (e as { body?: { message?: string } })?.body?.message ?? "Could not create table.";
+      createError = createErrorMessage(e);
       busy = false;
     }
   }
@@ -57,7 +61,8 @@
 
   function lastPlayedLabel(date: Date | string | number): string {
     const ts = new Date(date).getTime();
-    if (!Number.isFinite(ts) || ts < 86_400_000) return "Never played";
+    // NaN (invalid date) and the epoch placeholder both fail this guard → "Never played".
+    if (!(ts >= 86_400_000)) return "Never played";
     const sec = Math.round((ts - Date.now()) / 1000);
     const abs = Math.abs(sec);
     for (const [unit, s] of UNITS) {
