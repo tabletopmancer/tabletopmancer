@@ -3,7 +3,7 @@
   import tooltip from "$lib/actions/tooltip.js";
   import { draggable } from "$lib/actions/drag-n-drop.js";
 
-  let { assets }: { assets: Asset[] } = $props();
+  let { assets, onplayaudio }: { assets: Asset[]; onplayaudio?: (asset: Asset) => void } = $props();
 
   const categories = [
     {
@@ -70,6 +70,7 @@
           class="relative flex aspect-square h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-500 text-center break-all select-none *:pointer-events-none"
           use:tooltip={asset.name}
           use:draggable={asset}
+          onclick={() => asset.mimetype.startsWith("audio/") && onplayaudio?.(asset)}
         >
           {#if asset.thumbnail}
             <img class="h-full w-full rounded-full object-cover" src={asset.thumbnail} alt="" />

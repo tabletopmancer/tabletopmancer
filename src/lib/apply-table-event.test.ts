@@ -38,6 +38,7 @@ beforeEach(() => {
     players: [],
     paused: false,
     open: false,
+    audio: null,
   };
 });
 

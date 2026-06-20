@@ -103,7 +103,12 @@ function loadStateFromDb(tableId: string): BoardState {
   const openRow = db.prepare("SELECT value FROM board_meta WHERE key = 'open'").get() as any;
   const open = openRow?.value === "true";
 
-  return { tokens, maps, initiative, rollHistory, players, paused, open };
+  const audioRow = db.prepare("SELECT value FROM board_meta WHERE key = 'audio'").get() as any;
+  const audio: AudioState | null = audioRow
+    ? (JSON.parse(audioRow.value as string) as AudioState)
+    : null;
+
+  return { tokens, maps, initiative, rollHistory, players, paused, open, audio };
 }
 
 function loadState(tableId: string): BoardState {

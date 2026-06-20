@@ -18,6 +18,7 @@ function stateForRole(state: BoardState, role: string): BoardState {
     ...state,
     rollHistory: state.rollHistory.filter((r) => !r.private),
     initiative: filterInitiative(state.initiative),
+    audio: state.audio ? { url: state.audio.url } : null,
   };
 }
 
@@ -25,6 +26,9 @@ function filterEventForPlayer(event: TableEvent, role: string): TableEvent | nul
   if (isPrivateDiceRoll(event, role)) return null;
   if (event.type === "initiative:updated" && event.tracker) {
     return { ...event, tracker: filterInitiative(event.tracker) };
+  }
+  if (event.type === "audio:played") {
+    return { type: "audio:played", url: event.url };
   }
   return event;
 }
