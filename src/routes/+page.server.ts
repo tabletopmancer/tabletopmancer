@@ -33,7 +33,9 @@ export const load: PageServerLoad = async () => {
           return { id, name: id, lastPlayed };
         }),
     )
-  ).filter((t) => t !== null);
+  )
+    .filter((t) => t !== null)
+    .toSorted((a, b) => b.lastPlayed.getTime() - a.lastPlayed.getTime());
 
   return { tables };
 };
