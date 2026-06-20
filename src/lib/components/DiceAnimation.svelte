@@ -78,6 +78,18 @@
     return `${dice.length}d${type}@${faces.join(",")}`;
   }
 
+  function formulaSides(formula: string): number {
+    const parsed = parseFormula(formula);
+    return parsed ? parsed.sides : 6;
+  }
+
+  function scheduleHide() {
+    fadeTimer = setTimeout(() => {
+      visible = false;
+      clearTimer = setTimeout(() => box?.clear(), FADE_MS);
+    }, SETTLE_FADE_DELAY);
+  }
+
   async function trigger(r: DiceRoll) {
     if (!ready) return;
     await ready;
@@ -86,18 +98,12 @@
     clearTimeout(fadeTimer);
     clearTimeout(clearTimer);
 
-    const sides = parseFormula(r.formula)?.sides ?? 6;
     const dice = r.dice.slice(0, MAX_VISIBLE_DICE);
     if (dice.length === 0) return;
 
     visible = true;
-    await box.roll(buildNotation(sides, dice));
-
-    // Let the result rest, then fade the overlay and drop the dice.
-    fadeTimer = setTimeout(() => {
-      visible = false;
-      clearTimer = setTimeout(() => box?.clear(), FADE_MS);
-    }, SETTLE_FADE_DELAY);
+    await box.roll(buildNotation(formulaSides(r.formula), dice));
+    scheduleHide();
   }
 </script>
 
