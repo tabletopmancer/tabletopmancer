@@ -71,6 +71,12 @@ const handlers = {
   "board:closed": (state) => {
     state.open = false;
   },
+  "audio:played": (state, event) => {
+    state.audio = { url: event.url, name: event.name };
+  },
+  "audio:stopped": (state) => {
+    state.audio = null;
+  },
 } satisfies { [K in TableEvent["type"]]: Handler<K> };
 
 export function applyTableEvent(state: BoardState, event: TableEvent): void {

@@ -103,6 +103,11 @@ const persisters = {
     db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('open', 'true')").run(),
   "board:closed": (db) =>
     db.prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('open', 'false')").run(),
+  "audio:played": (db, event) =>
+    db
+      .prepare("INSERT OR REPLACE INTO board_meta (key, value) VALUES ('audio', ?)")
+      .run(JSON.stringify({ url: event.url, name: event.name })),
+  "audio:stopped": (db) => db.prepare("DELETE FROM board_meta WHERE key = 'audio'").run(),
   ping: () => {},
 } satisfies { [K in TableEvent["type"]]: Persister<K> };
 

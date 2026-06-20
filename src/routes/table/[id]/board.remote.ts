@@ -18,14 +18,20 @@ function stateForRole(state: BoardState, role: string): BoardState {
     ...state,
     rollHistory: state.rollHistory.filter((r) => !r.private),
     initiative: filterInitiative(state.initiative),
+    audio: state.audio ? { url: state.audio.url } : null,
   };
+}
+
+function filterInitiativeEvent(
+  event: Extract<TableEvent, { type: "initiative:updated" }>,
+): TableEvent {
+  return event.tracker ? { ...event, tracker: filterInitiative(event.tracker) } : event;
 }
 
 function filterEventForPlayer(event: TableEvent, role: string): TableEvent | null {
   if (isPrivateDiceRoll(event, role)) return null;
-  if (event.type === "initiative:updated" && event.tracker) {
-    return { ...event, tracker: filterInitiative(event.tracker) };
-  }
+  if (event.type === "initiative:updated") return filterInitiativeEvent(event);
+  if (event.type === "audio:played") return { type: "audio:played", url: event.url };
   return event;
 }
 

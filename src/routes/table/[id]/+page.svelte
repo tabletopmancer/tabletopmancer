@@ -1,18 +1,23 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
   import {
     Cloud,
     Dices,
     Eye,
     EyeOff,
     History,
+    Music,
     Pause,
     Play,
     Settings,
+    Square,
     Swords,
+    Volume2,
   } from "@lucide/svelte";
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
+  import { playAudio, stopAudio } from "$lib/audio.remote";
   import DiceAnimation from "$lib/components/DiceAnimation.svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
   import InitiativeTracker from "$lib/components/InitiativeTracker.svelte";
@@ -34,6 +39,7 @@
     players: [],
     paused: false,
     open: false,
+    audio: null,
   });
 
   let pings = $state<Array<{ id: string; position: Position }>>([]);
@@ -62,6 +68,64 @@
   let showInitiative = $state(false);
   let showDice = $state(false);
   let showFog = $state(false);
+  let showAudio = $state(false);
+
+  // Audio playback
+  let audioEl: HTMLAudioElement | undefined = $state();
+  let audioVolume = $state(1.0);
+  let audioLoop = $state(true);
+  let audioBlocked = $state(false);
+
+  onMount(() => {
+    const saved = localStorage.getItem("audio_volume");
+    if (saved !== null) audioVolume = parseFloat(saved);
+  });
+
+  function setAudioVolume(v: number) {
+    audioVolume = v;
+    localStorage.setItem("audio_volume", String(v));
+  }
+
+  $effect(() => {
+    if (!audioEl) return;
+    const audio = boardState.audio;
+    if (audio) {
+      const targetSrc = new URL(audio.url, location.href).href;
+      if (audioEl.src !== targetSrc) {
+        audioEl.src = audio.url;
+        audioEl.play().catch(() => {
+          audioBlocked = true;
+        });
+      }
+    } else {
+      audioBlocked = false;
+      audioEl.pause();
+      audioEl.src = "";
+    }
+  });
+
+  $effect(() => {
+    if (audioEl) audioEl.volume = audioVolume;
+  });
+
+  $effect(() => {
+    if (audioEl) audioEl.loop = audioLoop;
+  });
+
+  function enableAudio() {
+    audioBlocked = false;
+    audioEl?.play().catch(() => {
+      audioBlocked = true;
+    });
+  }
+
+  async function handlePlayAudio(asset: Asset) {
+    await playAudio({ tableId: data.tableId, url: asset.url, name: asset.name });
+  }
+
+  async function handleStopAudio() {
+    await stopAudio({ tableId: data.tableId });
+  }
 
   let fogToolActive = $state(false);
   let brushMode = $state<"reveal" | "hide">("reveal");
@@ -150,6 +214,59 @@
       class="fixed top-0 z-30 mb-6 flex w-full items-center justify-end gap-4 p-4"
       role="navigation"
     >
+      <li class="relative">
+        <button
+          class="cursor-pointer {boardState.audio
+            ? 'text-violet-300'
+            : 'text-zinc-300 hover:text-zinc-100'}"
+          aria-label="Audio controls"
+          onclick={() => (showAudio = !showAudio)}
+        >
+          <Music size={20} />
+        </button>
+        {#if showAudio}
+          <div
+            class="absolute right-0 top-full mt-2 w-56 rounded-xl bg-zinc-900 p-3 shadow-xl"
+            role="dialog"
+            aria-label="Audio controls"
+          >
+            <p class="mb-2 truncate text-sm font-semibold text-zinc-100">
+              {boardState.audio?.name ?? "No track playing"}
+            </p>
+            <div class="mb-3 flex gap-2">
+              <button
+                class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {boardState.audio
+                  ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                  : 'cursor-not-allowed bg-white/5 text-zinc-500'}"
+                disabled={!boardState.audio}
+                onclick={handleStopAudio}
+              >
+                <Square size={12} /> Stop
+              </button>
+              <button
+                class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-xs {audioLoop
+                  ? 'bg-violet-500/20 text-violet-200'
+                  : 'bg-white/10 text-zinc-300 hover:bg-white/20'}"
+                onclick={() => (audioLoop = !audioLoop)}
+              >
+                Loop {audioLoop ? "on" : "off"}
+              </button>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-zinc-400">
+              <Volume2 size={14} />
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={audioVolume}
+                oninput={(e) => setAudioVolume(parseFloat((e.target as HTMLInputElement).value))}
+                class="w-full accent-violet-400"
+              />
+            </label>
+          </div>
+        {/if}
+      </li>
       <li class="relative">
         <button
           class="cursor-pointer {fogToolActive
@@ -350,6 +467,30 @@
           <Swords size={18} />
         </button>
       {/if}
+      {#if boardState.audio}
+        {#if audioBlocked}
+          <button
+            class="cursor-pointer rounded bg-violet-600/80 px-2 py-1 text-xs font-semibold text-white hover:bg-violet-500"
+            onclick={enableAudio}
+          >
+            ▶ Enable audio
+          </button>
+        {:else}
+          <span class="text-violet-300" aria-label="Audio playing">
+            <Music size={18} />
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={audioVolume}
+            oninput={(e) => setAudioVolume(parseFloat((e.target as HTMLInputElement).value))}
+            aria-label="Volume"
+            class="w-20 accent-violet-400"
+          />
+        {/if}
+      {/if}
     </div>
 
     {#if showRollHistory}
@@ -371,8 +512,10 @@
   {/if}
 
   {#if data.role === "DM"}
-    <AssetDrawer assets={data.assets} />
+    <AssetDrawer assets={data.assets} onplayaudio={handlePlayAudio} />
   {/if}
+
+  <audio bind:this={audioEl}></audio>
 
   <DiceAnimation roll={animRoll} />
 </main>

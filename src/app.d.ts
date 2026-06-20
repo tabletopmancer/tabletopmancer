@@ -88,6 +88,11 @@ declare global {
     status: "pending" | "approved" | "denied" | "revoked";
   };
 
+  type AudioState = {
+    url: string;
+    name?: string;
+  };
+
   type BoardState = {
     tokens: Token[];
     maps: BoardMap[];
@@ -96,6 +101,7 @@ declare global {
     players: Player[];
     paused: boolean;
     open: boolean;
+    audio: AudioState | null;
   };
 
   type TableEvent =
@@ -117,7 +123,9 @@ declare global {
     | { type: "board:paused" }
     | { type: "board:unpaused" }
     | { type: "board:opened" }
-    | { type: "board:closed" };
+    | { type: "board:closed" }
+    | { type: "audio:played"; url: string; name?: string }
+    | { type: "audio:stopped" };
 }
 
 export {};
