@@ -113,6 +113,31 @@ const persisters = {
   ping: () => {},
 } satisfies { [K in TableEvent["type"]]: Persister<K> };
 
+const LOGGED_EVENT_TYPES = new Set([
+  "token:placed",
+  "token:removed",
+  "token:owner-assigned",
+  "map:placed",
+  "map:removed",
+  "dice:rolled",
+  "initiative:updated",
+  "player:joined",
+  "player:approved",
+  "player:denied",
+  "player:revoked",
+  "board:paused",
+  "board:unpaused",
+  "board:opened",
+  "board:closed",
+]);
+
 export function persistTableEvent(db: DatabaseSync, event: TableEvent): void {
   (persisters[event.type] as Persister<typeof event.type>)(db, event);
+  if (LOGGED_EVENT_TYPES.has(event.type)) {
+    db.prepare("INSERT INTO event_log (type, payload, timestamp) VALUES (?, ?, ?)").run(
+      event.type,
+      JSON.stringify(event),
+      Date.now(),
+    );
+  }
 }
