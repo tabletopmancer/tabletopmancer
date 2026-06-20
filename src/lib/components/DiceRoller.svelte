@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Dices } from "@lucide/svelte";
   import { rollDice } from "$lib/table.remote";
+  import { MAX_DICE_COUNT } from "$lib/dice";
 
   let {
     tableId,
@@ -15,6 +16,7 @@
   let formula = $state("");
   let isPrivate = $state(true);
   let rolling = $state(false);
+  let counts = $state<Record<number, number>>(Object.fromEntries(DICE.map((s) => [s, 1])));
 
   async function roll(f: string) {
     if (!f || rolling) return;
@@ -27,6 +29,12 @@
     }
   }
 
+  function adjustCount(sides: number, e: WheelEvent) {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    counts[sides] = Math.min(MAX_DICE_COUNT, Math.max(1, counts[sides] + delta));
+  }
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Enter") roll(formula.trim());
   }
@@ -36,12 +44,14 @@
   <div class="flex items-center gap-0.5">
     {#each DICE as sides}
       <button
-        onclick={() => roll(`1d${sides}`)}
+        onclick={() => roll(`${counts[sides]}d${sides}`)}
+        onwheel={(e) => adjustCount(sides, e)}
         disabled={rolling}
-        aria-label="Roll 1d{sides}"
-        class="cursor-pointer rounded px-1.5 py-0.5 text-xs font-semibold text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-100 disabled:opacity-40"
+        aria-label="Roll {counts[sides]}d{sides}"
+        title="Scroll to change number of dice"
+        class="cursor-pointer rounded px-1.5 py-0.5 text-xs font-semibold tabular-nums text-zinc-400 transition-colors hover:bg-white/10 hover:text-zinc-100 disabled:opacity-40"
       >
-        d{sides}
+        {counts[sides] > 1 ? counts[sides] : ""}d{sides}
       </button>
     {/each}
   </div>
