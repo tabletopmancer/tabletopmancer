@@ -4,7 +4,9 @@ type Handler<T extends TableEvent["type"]> = (
 ) => void;
 
 const handlers = {
-  "token:placed": (state, event) => state.tokens.push(event.token),
+  "token:placed": (state, event) => {
+    if (!state.tokens.some((t) => t.id === event.token.id)) state.tokens.push(event.token);
+  },
   "token:moved": (state, event) => {
     const t = state.tokens.find((t) => t.id === event.id);
     if (t) t.position = event.position;
@@ -22,7 +24,9 @@ const handlers = {
       }
     }
   },
-  "map:placed": (state, event) => state.maps.push(event.map),
+  "map:placed": (state, event) => {
+    if (!state.maps.some((m) => m.id === event.map.id)) state.maps.push(event.map);
+  },
   "map:removed": (state, event) => {
     state.maps = state.maps.filter((m) => m.id !== event.id);
   },

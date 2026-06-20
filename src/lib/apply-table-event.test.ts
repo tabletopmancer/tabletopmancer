@@ -49,6 +49,13 @@ describe("token events", () => {
     expect(state.tokens).toEqual([token]);
   });
 
+  it("ignores a duplicate placement of the same token", () => {
+    const token = makeToken();
+    applyTableEvent(state, { type: "token:placed", token });
+    applyTableEvent(state, { type: "token:placed", token });
+    expect(state.tokens).toEqual([token]);
+  });
+
   it("moves a token", () => {
     state.tokens = [makeToken()];
     applyTableEvent(state, { type: "token:moved", id: "t1", position: { x: 5, y: 7 } });
@@ -79,6 +86,13 @@ describe("token events", () => {
 describe("map events", () => {
   it("places a map", () => {
     const map = makeMap();
+    applyTableEvent(state, { type: "map:placed", map });
+    expect(state.maps).toEqual([map]);
+  });
+
+  it("ignores a duplicate placement of the same map", () => {
+    const map = makeMap();
+    applyTableEvent(state, { type: "map:placed", map });
     applyTableEvent(state, { type: "map:placed", map });
     expect(state.maps).toEqual([map]);
   });
