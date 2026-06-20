@@ -40,17 +40,23 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
   return { player, tableId, open };
 };
 
+function validateName(data: FormData): string | { error: string } {
+  const raw = data.get("name");
+  const name = typeof raw === "string" ? raw.trim() : null;
+  if (!name) return { error: "Name is required" };
+  if (name.length > MAX_NAME_LENGTH) return { error: "Name is too long" };
+  return name;
+}
+
 export const actions: Actions = {
   join: async ({ params, cookies, request }) => {
     const { id: tableId } = params;
     if (!(await tableExists(tableId))) error(404, "Table not found");
     const { open } = await getState(tableId);
     if (!open) return { error: "This table is not open to new players" };
-    const data = await request.formData();
-    const name = (data.get("name") as string | null)?.trim();
-
-    if (!name) return { error: "Name is required" };
-    if (name.length > MAX_NAME_LENGTH) return { error: "Name is too long" };
+    const nameResult = validateName(await request.formData());
+    if (typeof nameResult !== "string") return nameResult;
+    const name = nameResult;
 
     const playerId = crypto.randomUUID();
     const token = crypto.randomUUID();
