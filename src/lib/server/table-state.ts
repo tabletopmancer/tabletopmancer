@@ -40,6 +40,11 @@ export function getTableEmitter(tableId: string): EventEmitter {
   return emitter;
 }
 
+function loadAudioState(db: ReturnType<typeof getDb>): AudioState | null {
+  const row = db.prepare("SELECT value FROM board_meta WHERE key = 'audio'").get() as any;
+  return row ? (JSON.parse(row.value as string) as AudioState) : null;
+}
+
 function loadStateFromDb(tableId: string): BoardState {
   const db = getDb(tableId);
 
@@ -103,10 +108,7 @@ function loadStateFromDb(tableId: string): BoardState {
   const openRow = db.prepare("SELECT value FROM board_meta WHERE key = 'open'").get() as any;
   const open = openRow?.value === "true";
 
-  const audioRow = db.prepare("SELECT value FROM board_meta WHERE key = 'audio'").get() as any;
-  const audio: AudioState | null = audioRow
-    ? (JSON.parse(audioRow.value as string) as AudioState)
-    : null;
+  const audio = loadAudioState(db);
 
   return { tokens, maps, initiative, rollHistory, players, paused, open, audio };
 }
