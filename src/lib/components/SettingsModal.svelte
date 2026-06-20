@@ -32,56 +32,52 @@
   let historyLoading = $state(false);
 
   $effect(() => {
-    if (tab === "history") {
-      historyLoading = true;
-      getHistory(tableId).then((entries) => {
+    if (tab !== "history") return;
+    let cancelled = false;
+    historyLoading = true;
+    getHistory(tableId)
+      .then((entries) => {
+        if (cancelled) return;
         history = entries as HistoryEntry[];
         historyLoading = false;
+      })
+      .catch(() => {
+        if (cancelled) return;
+        historyLoading = false;
       });
-    }
+    return () => {
+      cancelled = true;
+    };
   });
 
   function findPlayer(id: string): string {
     return players.find((p) => p.id === id)?.name ?? id;
   }
 
+  const EVENT_LABELS: Record<string, string | ((p: any) => string)> = {
+    "token:placed": (p) => `Token "${p.token?.name}" placed`,
+    "token:removed": "Token removed",
+    "token:owner-assigned": (p) =>
+      p.owner ? `Token assigned to ${findPlayer(p.owner)}` : "Token unassigned",
+    "map:placed": "Map placed",
+    "map:removed": "Map removed",
+    "dice:rolled": (p) => `${p.roll?.player} rolled ${p.roll?.formula} → ${p.roll?.total}`,
+    "initiative:updated": (p) =>
+      p.tracker ? "Initiative tracker updated" : "Initiative tracker cleared",
+    "player:joined": (p) => `${p.player?.name} joined the table`,
+    "player:approved": (p) => `${findPlayer(p.playerId)} approved`,
+    "player:denied": (p) => `${findPlayer(p.playerId)} denied`,
+    "player:revoked": (p) => `${findPlayer(p.playerId)} access revoked`,
+    "board:paused": "Table paused",
+    "board:unpaused": "Table unpaused",
+    "board:opened": "Table opened to new players",
+    "board:closed": "Table closed to new players",
+  };
+
   function describeEvent(type: string, payload: any): string {
-    switch (type) {
-      case "token:placed":
-        return `Token "${payload.token?.name}" placed`;
-      case "token:removed":
-        return "Token removed";
-      case "token:owner-assigned":
-        return payload.owner
-          ? `Token assigned to ${findPlayer(payload.owner)}`
-          : "Token unassigned";
-      case "map:placed":
-        return "Map placed";
-      case "map:removed":
-        return "Map removed";
-      case "dice:rolled":
-        return `${payload.roll?.player} rolled ${payload.roll?.formula} → ${payload.roll?.total}`;
-      case "initiative:updated":
-        return payload.tracker ? "Initiative tracker updated" : "Initiative tracker cleared";
-      case "player:joined":
-        return `${payload.player?.name} joined the table`;
-      case "player:approved":
-        return `${findPlayer(payload.playerId)} approved`;
-      case "player:denied":
-        return `${findPlayer(payload.playerId)} denied`;
-      case "player:revoked":
-        return `${findPlayer(payload.playerId)} access revoked`;
-      case "board:paused":
-        return "Table paused";
-      case "board:unpaused":
-        return "Table unpaused";
-      case "board:opened":
-        return "Table opened to new players";
-      case "board:closed":
-        return "Table closed to new players";
-      default:
-        return type;
-    }
+    const label = EVENT_LABELS[type];
+    if (!label) return type;
+    return typeof label === "function" ? label(payload) : label;
   }
 
   const EVENT_COLORS: Record<string, string> = {
