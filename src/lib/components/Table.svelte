@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { dropzone } from "$lib/actions/drag-n-drop.js";
+  import { dropzone, type DropPoint } from "$lib/actions/drag-n-drop.js";
   import {
     placeToken,
     placeMap,
@@ -68,8 +68,8 @@
     return { name, imageUrl };
   }
 
-  async function onDrop(asset: Asset, event: DragEvent) {
-    const pos = board?.screenToBoard(event.clientX, event.clientY) ?? { x: 0, y: 0 };
+  async function onDrop(asset: Asset, point: DropPoint) {
+    const pos = board?.screenToBoard(point.clientX, point.clientY) ?? { x: 0, y: 0 };
 
     if (asset.mimetype === "application/vnd.universal.vtt") {
       await placeMap({ tableId, assetUrl: asset.url, position: pos });
