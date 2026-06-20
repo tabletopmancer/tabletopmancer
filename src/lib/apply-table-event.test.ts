@@ -186,3 +186,22 @@ describe("board events", () => {
     expect(state.open).toBe(false);
   });
 });
+
+describe("audio events", () => {
+  it("sets audio state on play", () => {
+    applyTableEvent(state, { type: "audio:played", url: "/track.mp3", name: "Track 1" });
+    expect(state.audio).toEqual({ url: "/track.mp3", name: "Track 1" });
+  });
+
+  it("replaces audio state when a new track is played", () => {
+    applyTableEvent(state, { type: "audio:played", url: "/a.mp3", name: "A" });
+    applyTableEvent(state, { type: "audio:played", url: "/b.mp3", name: "B" });
+    expect(state.audio).toEqual({ url: "/b.mp3", name: "B" });
+  });
+
+  it("clears audio state on stop", () => {
+    applyTableEvent(state, { type: "audio:played", url: "/track.mp3", name: "Track 1" });
+    applyTableEvent(state, { type: "audio:stopped" });
+    expect(state.audio).toBeNull();
+  });
+});

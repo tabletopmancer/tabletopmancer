@@ -74,11 +74,17 @@
   let audioEl: HTMLAudioElement | undefined = $state();
   let audioVolume = $state(1.0);
   let audioLoop = $state(true);
+  let audioBlocked = $state(false);
 
   onMount(() => {
     const saved = localStorage.getItem("audio_volume");
     if (saved !== null) audioVolume = parseFloat(saved);
   });
+
+  function setAudioVolume(v: number) {
+    audioVolume = v;
+    localStorage.setItem("audio_volume", String(v));
+  }
 
   $effect(() => {
     if (!audioEl) return;
@@ -87,9 +93,12 @@
       const targetSrc = new URL(audio.url, location.href).href;
       if (audioEl.src !== targetSrc) {
         audioEl.src = audio.url;
-        audioEl.play().catch(() => {});
+        audioEl.play().catch(() => {
+          audioBlocked = true;
+        });
       }
     } else {
+      audioBlocked = false;
       audioEl.pause();
       audioEl.src = "";
     }
@@ -97,12 +106,18 @@
 
   $effect(() => {
     if (audioEl) audioEl.volume = audioVolume;
-    localStorage.setItem("audio_volume", String(audioVolume));
   });
 
   $effect(() => {
     if (audioEl) audioEl.loop = audioLoop;
   });
+
+  function enableAudio() {
+    audioBlocked = false;
+    audioEl?.play().catch(() => {
+      audioBlocked = true;
+    });
+  }
 
   async function handlePlayAudio(asset: Asset) {
     await playAudio({ tableId: data.tableId, url: asset.url, name: asset.name });
@@ -240,7 +255,8 @@
                 min="0"
                 max="1"
                 step="0.05"
-                bind:value={audioVolume}
+                value={audioVolume}
+                oninput={(e) => setAudioVolume(parseFloat((e.target as HTMLInputElement).value))}
                 class="w-full accent-violet-400"
               />
             </label>
@@ -448,18 +464,28 @@
         </button>
       {/if}
       {#if boardState.audio}
-        <span class="text-violet-300" aria-label="Audio playing">
-          <Music size={18} />
-        </span>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.05"
-          bind:value={audioVolume}
-          aria-label="Volume"
-          class="w-20 accent-violet-400"
-        />
+        {#if audioBlocked}
+          <button
+            class="cursor-pointer rounded bg-violet-600/80 px-2 py-1 text-xs font-semibold text-white hover:bg-violet-500"
+            onclick={enableAudio}
+          >
+            ▶ Enable audio
+          </button>
+        {:else}
+          <span class="text-violet-300" aria-label="Audio playing">
+            <Music size={18} />
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={audioVolume}
+            oninput={(e) => setAudioVolume(parseFloat((e.target as HTMLInputElement).value))}
+            aria-label="Volume"
+            class="w-20 accent-violet-400"
+          />
+        {/if}
       {/if}
     </div>
 
