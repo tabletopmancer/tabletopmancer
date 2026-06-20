@@ -126,6 +126,10 @@
   });
 </script>
 
+<svelte:head>
+  <title>{data.tableId} - Tabletopmancer</title>
+</svelte:head>
+
 <main
   class="h-screen w-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950 text-zinc-100"
 >
