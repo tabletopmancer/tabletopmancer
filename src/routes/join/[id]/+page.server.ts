@@ -2,6 +2,7 @@ import { TABLETOPMANCER_HOME } from "$lib/server/config.js";
 import { createSession, getSession } from "$lib/server/sessions.js";
 import { tableDirName } from "$lib/server/table-dir.js";
 import { getState, dispatchTableEvent } from "$lib/server/table-state.js";
+import { assignPlayerColor } from "$lib/player-colors.js";
 import { error, redirect } from "@sveltejs/kit";
 import fs from "fs-extra";
 import crypto from "node:crypto";
@@ -60,7 +61,9 @@ export const actions: Actions = {
 
     const playerId = crypto.randomUUID();
     const token = crypto.randomUUID();
-    const player: Player = { id: playerId, name, status: "pending" };
+    const { players } = await getState(tableId);
+    const color = assignPlayerColor(players.length);
+    const player: Player = { id: playerId, name, color, status: "pending" };
 
     await createSession(tableId, token, playerId);
 

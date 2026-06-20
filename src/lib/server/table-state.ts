@@ -78,6 +78,7 @@ function loadStateFromDb(tableId: string): BoardState {
   const rollHistory: DiceRoll[] = rollRows.map((r) => ({
     id: r.id as string,
     player: r.player as string,
+    ...(r.color != null ? { color: r.color as string } : {}),
     formula: r.formula as string,
     dice: JSON.parse(r.dice as string) as number[],
     modifier: r.modifier as number,
@@ -99,6 +100,7 @@ function loadStateFromDb(tableId: string): BoardState {
   const players: Player[] = playerRows.map((r) => ({
     id: r.id as string,
     name: r.name as string,
+    ...(r.color != null ? { color: r.color as string } : {}),
     status: r.status as Player["status"],
   }));
 

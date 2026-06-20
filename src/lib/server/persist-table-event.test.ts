@@ -106,6 +106,7 @@ describe("dice persister", () => {
     const roll: DiceRoll = {
       id: "r1",
       player: "Alice",
+      color: "#dc2626",
       formula: "2d6+1",
       dice: [3, 5],
       modifier: 1,
@@ -118,6 +119,7 @@ describe("dice persister", () => {
       {
         id: "r1",
         player: "Alice",
+        color: "#dc2626",
         formula: "2d6+1",
         dice: "[3,5]",
         modifier: 1,
@@ -152,12 +154,14 @@ describe("initiative persister", () => {
 });
 
 describe("player persisters", () => {
-  const player: Player = { id: "p1", name: "Alice", status: "pending" };
+  const player: Player = { id: "p1", name: "Alice", color: "#7c3aed", status: "pending" };
 
   it("inserts a joining player and ignores duplicates", () => {
     persistTableEvent(db, { type: "player:joined", player });
     persistTableEvent(db, { type: "player:joined", player: { ...player, name: "Imposter" } });
-    expect(rows("players")).toEqual([{ id: "p1", name: "Alice", status: "pending" }]);
+    expect(rows("players")).toEqual([
+      { id: "p1", name: "Alice", color: "#7c3aed", status: "pending" },
+    ]);
   });
 
   it.each([
