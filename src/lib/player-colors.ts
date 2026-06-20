@@ -4,7 +4,7 @@
 
 // Distinct, readable palette assigned to players in join order. Wraps around
 // once exhausted.
-export const PLAYER_COLORS = [
+const PLAYER_COLORS = [
   "#7c3aed", // violet
   "#dc2626", // red
   "#2563eb", // blue
@@ -18,7 +18,7 @@ export const PLAYER_COLORS = [
 ];
 
 // Neutral tone reserved for the DM (who has no player record).
-export const DM_COLOR = "#52525b"; // zinc-600
+const DM_COLOR = "#52525b"; // zinc-600
 
 /** The color for the next player to join, given how many already exist. */
 export function assignPlayerColor(existingCount: number): string {
@@ -32,7 +32,7 @@ function hashString(value: string): number {
 }
 
 /** A stable palette color derived from a string — used as a fallback. */
-export function hashColor(key: string): string {
+function hashColor(key: string): string {
   return PLAYER_COLORS[hashString(key) % PLAYER_COLORS.length];
 }
 
