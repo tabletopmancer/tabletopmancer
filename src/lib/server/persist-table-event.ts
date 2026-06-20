@@ -29,24 +29,17 @@ const persisters = {
     db.prepare("UPDATE tokens SET owner = ? WHERE id = ?").run(event.owner ?? null, event.id),
   "map:placed": (db, event) => {
     const m = event.map;
-    db.exec("BEGIN");
-    try {
-      db.prepare("INSERT OR REPLACE INTO maps (id, asset_url, x, y) VALUES (?, ?, ?, ?)").run(
-        m.id,
-        m.assetUrl,
-        m.position.x,
-        m.position.y,
+    db.prepare("INSERT OR REPLACE INTO maps (id, asset_url, x, y) VALUES (?, ?, ?, ?)").run(
+      m.id,
+      m.assetUrl,
+      m.position.x,
+      m.position.y,
+    );
+    if (m.fog?.length) {
+      const ins = db.prepare(
+        "INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)",
       );
-      if (m.fog?.length) {
-        const ins = db.prepare(
-          "INSERT INTO fog_patches (map_id, mode, x, y, radius) VALUES (?, ?, ?, ?, ?)",
-        );
-        for (const p of m.fog) ins.run(m.id, p.mode, p.x, p.y, p.radius);
-      }
-      db.exec("COMMIT");
-    } catch (err) {
-      db.exec("ROLLBACK");
-      throw err;
+      for (const p of m.fog) ins.run(m.id, p.mode, p.x, p.y, p.radius);
     }
   },
   "map:removed": (db, event) => db.prepare("DELETE FROM maps WHERE id = ?").run(event.id),
@@ -113,6 +106,38 @@ const persisters = {
   ping: () => {},
 } satisfies { [K in TableEvent["type"]]: Persister<K> };
 
+const LOGGED_EVENT_TYPES = new Set<TableEvent["type"]>([
+  "token:placed",
+  "token:removed",
+  "token:owner-assigned",
+  "map:placed",
+  "map:removed",
+  "dice:rolled",
+  "initiative:updated",
+  "player:joined",
+  "player:approved",
+  "player:denied",
+  "player:revoked",
+  "board:paused",
+  "board:unpaused",
+  "board:opened",
+  "board:closed",
+]);
+
 export function persistTableEvent(db: DatabaseSync, event: TableEvent): void {
-  (persisters[event.type] as Persister<typeof event.type>)(db, event);
+  db.exec("BEGIN");
+  try {
+    (persisters[event.type] as Persister<typeof event.type>)(db, event);
+    if (LOGGED_EVENT_TYPES.has(event.type)) {
+      db.prepare("INSERT INTO event_log (type, payload, timestamp) VALUES (?, ?, ?)").run(
+        event.type,
+        JSON.stringify(event),
+        Date.now(),
+      );
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 }

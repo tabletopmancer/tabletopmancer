@@ -1,6 +1,7 @@
 import { command } from "$app/server";
 import { parseFormula, type ParsedFormula } from "$lib/dice.js";
 import { requireDm, requireParticipant } from "$lib/server/auth.js";
+import { getDb } from "$lib/server/db.js";
 import { dispatchTableEvent, getState, getTableEmitter } from "$lib/server/table-state.js";
 import { error } from "@sveltejs/kit";
 import { randomUUID } from "node:crypto";
@@ -258,6 +259,20 @@ export const actOnPlayer = command(
     });
   },
 );
+
+export const getHistory = command(v.string(), async (tableId) => {
+  requireDm();
+  const db = getDb(tableId);
+  const rows = db
+    .prepare("SELECT id, type, payload, timestamp FROM event_log ORDER BY id DESC LIMIT 200")
+    .all() as Array<{ id: number; type: string; payload: string; timestamp: number }>;
+  return rows.map((r) => ({
+    id: r.id,
+    type: r.type,
+    payload: JSON.parse(r.payload) as unknown,
+    timestamp: r.timestamp,
+  }));
+});
 
 export const pingTable = command(
   v.object({ tableId: v.string(), position: PositionSchema }),
