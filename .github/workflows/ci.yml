@@ -34,5 +34,20 @@ jobs:
       - name: Analyze (fallow)
         run: pnpm analyze
 
+      # Report-only: `pnpm analyze` above is the gate, so a non-zero exit here
+      # (findings above threshold) must not fail the job a second time.
+      - name: Health report (fallow)
+        if: always()
+        run: |
+          pnpm exec fallow health --format github-summary >> "$GITHUB_STEP_SUMMARY" || true
+          pnpm exec fallow health --format json --output-file fallow-health.json || true
+
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fallow-health
+          path: fallow-health.json
+
       - name: Test (vitest)
         run: pnpm test

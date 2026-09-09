@@ -10,5 +10,8 @@
   "duplicates": {
     "minOccurrences": 3
   },
+  "health": {
+    "maxCognitive": 20
+  },
   "rules": {}
 }
