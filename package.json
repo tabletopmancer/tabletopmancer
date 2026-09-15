@@ -10,7 +10,7 @@
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
     "lint": "oxlint src",
-    "analyze": "fallow",
+    "analyze": "fallow audit",
     "preview": "vite preview",
     "test": "svelte-kit sync && vitest run",
     "test:watch": "svelte-kit sync && vitest",
