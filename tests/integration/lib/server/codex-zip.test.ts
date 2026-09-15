@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { extractZipCodexes } from "./codex-zip.js";
+import { extractZipCodexes } from "$lib/server/codex-zip.js";
 
 let codexesDir: string;
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { applyTableEvent } from "./apply-table-event.js";
+import { applyTableEvent } from "$lib/apply-table-event.js";
 
 function makeToken(overrides: Partial<Token> = {}): Token {
   return { id: "t1", name: "Hero", position: { x: 0, y: 0 }, ...overrides };
