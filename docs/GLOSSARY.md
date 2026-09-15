@@ -37,8 +37,8 @@ A person who joined one table, with status `pending`, `approved`, `denied` or
 
 ## Codex
 
-A directory in a table's `codexes/` that supplies content: a *system* codex has
-`codex.json`, a *campaign* codex has `campaign.json`. A `.zip` codex is
+A directory in a table's `codexes/` that supplies content: a _system_ codex has
+`codex.json`, a _campaign_ codex has `campaign.json`. A `.zip` codex is
 extracted on first load.
 
 ## Asset
