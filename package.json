@@ -53,7 +53,7 @@
     "vitest": "^5.0.1"
   },
   "lint-staged": {
-    "*.{ts,js,svelte,css}": "oxfmt --write",
+    "*.{ts,js,svelte,css,md}": "oxfmt --write",
     "*.{ts,js,svelte}": "oxlint"
   },
   "engines": {
