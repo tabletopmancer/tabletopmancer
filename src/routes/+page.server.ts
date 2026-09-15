@@ -6,7 +6,9 @@ import type { PageServerLoad } from "./$types";
 const savesDir = path.join(TABLETOPMANCER_HOME, "saves");
 
 export const load: PageServerLoad = async () => {
-  const dirs = await fs.readdir(savesDir, { withFileTypes: true });
+  const dirs = (await fs.pathExists(savesDir))
+    ? await fs.readdir(savesDir, { withFileTypes: true })
+    : [];
 
   const tables = (
     await Promise.all(

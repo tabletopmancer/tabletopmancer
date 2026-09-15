@@ -17,16 +17,13 @@ function rollHistory(page: Page) {
 }
 
 async function openRollHistory(page: Page): Promise<void> {
-  // The 3D dice canvas covers the toolbar after a roll, so dispatch the click.
-  await page.getByRole("button", { name: "Toggle roll history" }).first().dispatchEvent("click");
+  await page.getByRole("button", { name: "Toggle roll history" }).first().click();
   await rollHistory(page).waitFor();
 }
 
-// Skipped: a roll never reaches an open table page — neither the roller's own
-// page nor a second browser context shows it until the page reloads.
-describe.skip("rolling dice", () => {
+describe("rolling dice", () => {
   it("shows a player roll in the DM's history", async () => {
-    const { dm, player } = await tableWithApprovedPlayer(browser, "DiceTable", "Alice");
+    const { dm, player } = await tableWithApprovedPlayer(browser, "Dice Table", "Alice");
 
     await player.getByRole("button", { name: "Roll 1d20" }).click();
 
@@ -36,7 +33,7 @@ describe.skip("rolling dice", () => {
   });
 
   it("keeps a private DM roll out of the player's history", async () => {
-    const { dm, player } = await tableWithApprovedPlayer(browser, "PrivateDiceTable", "Bob");
+    const { dm, player } = await tableWithApprovedPlayer(browser, "Private Dice Table", "Bob");
 
     await dm.getByRole("button", { name: "Roll dice" }).click();
     const roller = dm.getByRole("dialog", { name: "Dice roller" });

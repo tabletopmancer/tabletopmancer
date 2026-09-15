@@ -39,9 +39,7 @@ function settingsDialog(dm: Page) {
 }
 
 async function openSettingsTab(dm: Page, tab: "General" | "Players" | "History"): Promise<void> {
-  // The pending-player badge overlaps the settings button, so dispatch the
-  // click instead of aiming the mouse at it.
-  await dm.getByRole("button", { name: "Settings" }).dispatchEvent("click");
+  await dm.getByRole("button", { name: "Settings" }).click();
   await settingsDialog(dm).getByRole("button", { name: tab, exact: true }).click();
 }
 
@@ -61,9 +59,6 @@ export async function requestToJoin(player: Page, tableId: string, name: string)
   await player.goto(`/join/${encodeURIComponent(tableId)}`);
   await player.getByLabel("Your name").fill(name);
   await player.getByRole("button", { name: "Request to join" }).click();
-  // The join page keeps its first `data.player` value, so the waiting room only
-  // renders after a fresh load.
-  await player.reload();
   await player.getByText("Waiting room").waitFor();
 }
 

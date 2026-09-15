@@ -57,8 +57,6 @@ export default async function setup({ provide }: TestProject): Promise<() => Pro
   await run("pnpm", ["exec", "vite", "build"], { cwd: process.cwd() });
 
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "ttm-e2e-"));
-  // The home page lists the saves directory and fails when it is missing.
-  await fs.ensureDir(path.join(home, "saves"));
   const port = await freePort();
   // SvelteKit marks cookies secure for any host but localhost, and a secure
   // cookie never comes back over plain http.

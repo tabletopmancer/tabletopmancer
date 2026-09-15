@@ -135,6 +135,13 @@ describe("dice and initiative events", () => {
     expect(state.rollHistory).toEqual([roll]);
   });
 
+  it("ignores a roll it already holds", () => {
+    const roll = makeRoll();
+    applyTableEvent(state, { type: "dice:rolled", roll });
+    applyTableEvent(state, { type: "dice:rolled", roll });
+    expect(state.rollHistory).toEqual([roll]);
+  });
+
   it("sets and clears the initiative tracker", () => {
     const tracker: InitiativeTracker = {
       active: true,

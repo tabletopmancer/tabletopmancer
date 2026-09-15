@@ -134,7 +134,7 @@
     </button>
     {#if pendingCount > 0}
       <span
-        class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-zinc-900"
+        class="pointer-events-none absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-zinc-900"
       >
         {pendingCount}
       </span>

@@ -22,7 +22,7 @@ afterAll(async () => {
 
 describe("joining a table", () => {
   it("sends the player to the table once the DM approves", async () => {
-    const tableId = "ApprovalRun";
+    const tableId = "Approval Run";
     const dm = await dmPage(browser);
     await createTable(dm, tableId);
     await openTableToPlayers(dm);
@@ -37,7 +37,7 @@ describe("joining a table", () => {
   });
 
   it("turns a closed table away", async () => {
-    const tableId = "ClosedTable";
+    const tableId = "Closed Table";
     const dm = await dmPage(browser);
     await createTable(dm, tableId);
 

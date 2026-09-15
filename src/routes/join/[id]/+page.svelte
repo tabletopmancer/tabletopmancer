@@ -13,7 +13,11 @@
     | { type: "player:revoked" };
 
   let dmOnline = $state(false);
-  let playerState = $state<Player | null>(data.player);
+  // A status the stream reported, which the load data does not know about yet.
+  let streamedStatus = $state<Player["status"] | null>(null);
+  const playerState = $derived(
+    data.player && streamedStatus ? { ...data.player, status: streamedStatus } : data.player,
+  );
 
   function handleDmStatus(type: StatusEvent["type"]): boolean {
     if (type === "dm:online") {
@@ -31,13 +35,13 @@
     return type === "player:denied" ? "denied" : "revoked";
   }
 
-  async function handleStatusEvent(ev: StatusEvent, p: Player): Promise<void> {
+  async function handleStatusEvent(ev: StatusEvent): Promise<void> {
     if (handleDmStatus(ev.type)) return;
     if (ev.type === "player:approved") {
       await goto(`/table/${data.tableId}`);
       return;
     }
-    playerState = { ...p, status: resolvePlayerStatus(ev.type) };
+    streamedStatus = resolvePlayerStatus(ev.type);
   }
 
   $effect(() => {
@@ -51,7 +55,7 @@
       while (true) {
         const { value, done } = await iter.next();
         if (done) break;
-        await handleStatusEvent(value as StatusEvent, p);
+        await handleStatusEvent(value as StatusEvent);
       }
     })();
 

@@ -27,7 +27,7 @@ async function guardPlayer(event: RequestEvent): Promise<void> {
   if (event.url.pathname === "/") error(401, "Unauthorized");
 
   const tableMatch = event.url.pathname.match(/^\/table\/([^/]+)/);
-  if (tableMatch) await authorizePlayer(event, tableMatch[1]);
+  if (tableMatch) await authorizePlayer(event, decodeURIComponent(tableMatch[1]));
 }
 
 export const handle: Handle = async ({ event, resolve }) => {

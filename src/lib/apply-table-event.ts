@@ -41,7 +41,13 @@ const handlers = {
       m.fog.push(event.patch);
     }
   },
-  "dice:rolled": (state, event) => state.rollHistory.push(event.roll),
+  "dice:rolled": (state, event) => {
+    // The roller's own page sees the roll twice: once in the refreshed board
+    // state the command returns, once as this event.
+    if (!state.rollHistory.some((r) => r.id === event.roll.id)) {
+      state.rollHistory.push(event.roll);
+    }
+  },
   ping: () => {},
   "initiative:updated": (state, event) => {
     state.initiative = event.tracker;
