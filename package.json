@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "test": "svelte-kit sync && vitest run",
     "test:watch": "svelte-kit sync && vitest",
-    "prepare": "git config --unset core.hooksPath || true && simple-git-hooks"
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "adm-zip": "^0.6.1"
