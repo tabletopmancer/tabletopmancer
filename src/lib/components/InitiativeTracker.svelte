@@ -1,11 +1,8 @@
 <script lang="ts">
-  import { Minus, Plus, Trash2, X } from "@lucide/svelte";
-  import {
-    addNpcEntry,
-    adjustTurn,
-    deactivateInitiative,
-    removeInitiativeEntry,
-  } from "$lib/initiative.remote";
+  import { Minus, Plus, X } from "@lucide/svelte";
+  import { adjustTurn } from "$lib/initiative.remote";
+  import DmControls from "./Initiative/DmControls.svelte";
+  import EntryRow from "./Initiative/EntryRow.svelte";
 
   let {
     tracker,
@@ -19,22 +16,11 @@
     onclose: () => void;
   } = $props();
 
-  let npcName = $state("");
-  let npcInitiative = $state("");
-  let showAddNpc = $state(false);
-
-  async function addNpc() {
-    const initiative = parseInt(npcInitiative);
-    if (!npcName.trim() || isNaN(initiative)) return;
-    await addNpcEntry({ tableId, name: npcName.trim(), initiative });
-    npcName = "";
-    npcInitiative = "";
-    showAddNpc = false;
-  }
+  const isDm = $derived(role === "DM");
 </script>
 
 <div
-  class="fixed right-4 top-14 z-40 flex w-72 flex-col rounded-xl bg-zinc-900 shadow-xl"
+  class="fixed top-14 right-4 z-40 flex w-72 flex-col rounded-xl bg-zinc-900 shadow-xl"
   role="dialog"
   aria-label="Initiative tracker"
 >
@@ -42,7 +28,7 @@
     <div class="flex items-center gap-2">
       <span class="font-display text-sm font-semibold tracking-wide text-zinc-100">Initiative</span>
       <div class="flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5">
-        {#if role === "DM"}
+        {#if isDm}
           <button
             onclick={() => adjustTurn({ tableId, delta: -1 })}
             class="text-zinc-400 hover:text-zinc-100"
@@ -54,7 +40,7 @@
         <span class="min-w-5 text-center text-xs font-bold text-amber-300">
           {tracker.turn}
         </span>
-        {#if role === "DM"}
+        {#if isDm}
           <button
             onclick={() => adjustTurn({ tableId, delta: 1 })}
             class="text-zinc-400 hover:text-zinc-100"
@@ -75,87 +61,12 @@
       <p class="px-3 py-4 text-center text-xs text-zinc-500">No entries yet.</p>
     {:else}
       {#each tracker.entries as entry (entry.tokenId)}
-        <div
-          class="mb-1 flex items-center justify-between rounded-lg px-3 py-2 text-sm"
-          style="background: rgba(255,255,255,0.05)"
-        >
-          <div class="flex min-w-0 items-center gap-2">
-            {#if entry.isNPC}
-              <span
-                class="shrink-0 rounded bg-red-900 px-1.5 py-0.5 text-[10px] font-semibold text-red-200"
-              >
-                NPC
-              </span>
-            {/if}
-            <span class="truncate text-zinc-200">{entry.name}</span>
-          </div>
-          <div class="flex shrink-0 items-center gap-2">
-            {#if entry.initiative !== null}
-              <span class="font-mono text-lg font-bold text-violet-300">{entry.initiative}</span>
-            {:else}
-              <span class="text-sm text-zinc-500">—</span>
-            {/if}
-            {#if role === "DM"}
-              <button
-                onclick={() => removeInitiativeEntry({ tableId, tokenId: entry.tokenId })}
-                aria-label="Remove entry"
-                class="text-zinc-600 hover:text-red-400"
-              >
-                <Trash2 size={14} />
-              </button>
-            {/if}
-          </div>
-        </div>
+        <EntryRow {entry} {tableId} {role} />
       {/each}
     {/if}
   </div>
 
-  {#if role === "DM"}
-    <div class="space-y-2 border-t border-white/10 p-2">
-      {#if showAddNpc}
-        <div class="flex gap-2">
-          <input
-            bind:value={npcName}
-            placeholder="NPC name"
-            class="min-w-0 flex-1 rounded bg-white/10 px-2 py-1 text-xs text-zinc-100 placeholder-zinc-500 outline-none"
-          />
-          <input
-            bind:value={npcInitiative}
-            type="number"
-            placeholder="Init"
-            class="w-12 rounded bg-white/10 px-2 py-1 text-xs text-zinc-100 placeholder-zinc-500 outline-none"
-          />
-          <button
-            onclick={addNpc}
-            class="rounded bg-violet-700 px-2 py-1 text-xs font-medium hover:bg-violet-600"
-          >
-            Add
-          </button>
-        </div>
-        <button
-          onclick={() => (showAddNpc = false)}
-          class="w-full text-xs text-zinc-500 hover:text-zinc-300"
-        >
-          Cancel
-        </button>
-      {:else}
-        <button
-          onclick={() => (showAddNpc = true)}
-          class="w-full rounded bg-white/5 py-1.5 text-xs text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
-        >
-          + Add NPC
-        </button>
-      {/if}
-
-      <button
-        onclick={async () => {
-          await deactivateInitiative(tableId);
-          onclose();
-        }}
-        class="w-full rounded bg-red-900/50 py-1.5 text-xs text-red-300 hover:bg-red-900 hover:text-red-100"
-      >
-        Deactivate &amp; Reset
-      </button>
-    </div>
+  {#if isDm}
+    <DmControls {tableId} {onclose} />
   {/if}
 </div>

@@ -1,46 +1,51 @@
 <script lang="ts">
-  import { Cloud, Dices, History, Music, Pause, Play, Settings, Swords } from "@lucide/svelte";
+  import { Dices, History, Pause, Play, Settings, Swords } from "@lucide/svelte";
   import DiceRoller from "$lib/components/DiceRoller.svelte";
-  import AudioPanel from "$lib/components/Toolbar/AudioPanel.svelte";
-  import FogPanel from "$lib/components/Toolbar/FogPanel.svelte";
   import { activateInitiative } from "$lib/initiative.remote";
   import { pauseBoard, unpauseBoard } from "$lib/table.remote";
+  import AudioPopover from "./AudioPopover.svelte";
+  import FogPopover from "./FogPopover.svelte";
 
   let {
+    boardState,
     tableId,
     role,
-    boardState,
     audioVolume,
     audioLoop = $bindable(),
     fogToolActive = $bindable(),
     brushMode = $bindable(),
     brushSize = $bindable(),
-    showRollHistory = $bindable(),
-    showInitiative = $bindable(),
-    showSettings = $bindable(),
-    onvolumechange,
     onstopaudio,
+    onvolume,
+    ontogglesettings,
+    ontogglerollhistory,
+    ontoggleinitiative,
   }: {
+    boardState: BoardState;
     tableId: string;
     role: "DM" | "PLAYER";
-    boardState: BoardState;
     audioVolume: number;
     audioLoop: boolean;
     fogToolActive: boolean;
     brushMode: "reveal" | "hide";
     brushSize: number;
-    showRollHistory: boolean;
-    showInitiative: boolean;
-    showSettings: boolean;
-    onvolumechange: (volume: number) => void;
     onstopaudio: () => void;
+    onvolume: (value: number) => void;
+    ontogglesettings: () => void;
+    ontogglerollhistory: () => void;
+    ontoggleinitiative: () => void;
   } = $props();
 
-  let showAudio = $state(false);
-  let showFog = $state(false);
   let showDice = $state(false);
 
   const pendingCount = $derived(boardState.players.filter((p) => p.status === "pending").length);
+
+  async function toggleInitiative() {
+    if (!boardState.initiative) {
+      await activateInitiative(tableId);
+    }
+    ontoggleinitiative();
+  }
 
   async function togglePause() {
     if (boardState.paused) {
@@ -49,49 +54,19 @@
       await pauseBoard(tableId);
     }
   }
-
-  async function toggleInitiative() {
-    if (!boardState.initiative) {
-      await activateInitiative(tableId);
-    }
-    showInitiative = !showInitiative;
-  }
-
-  const activeIcon = "text-violet-300";
-  const idleIcon = "text-zinc-300 hover:text-zinc-100";
 </script>
 
 <ul class="fixed top-0 z-30 mb-6 flex w-full items-center justify-end gap-4 p-4" role="navigation">
-  <li class="relative">
-    <button
-      class="cursor-pointer {boardState.audio ? activeIcon : idleIcon}"
-      aria-label="Audio controls"
-      onclick={() => (showAudio = !showAudio)}
-    >
-      <Music size={20} />
-    </button>
-    {#if showAudio}
-      <AudioPanel
-        audio={boardState.audio}
-        {audioVolume}
-        bind:audioLoop
-        {onvolumechange}
-        {onstopaudio}
-      />
-    {/if}
-  </li>
-  <li class="relative">
-    <button
-      class="cursor-pointer {fogToolActive ? activeIcon : idleIcon}"
-      aria-label="Fog controls"
-      onclick={() => (showFog = !showFog)}
-    >
-      <Cloud size={20} />
-    </button>
-    {#if showFog}
-      <FogPanel bind:fogToolActive bind:brushMode bind:brushSize />
-    {/if}
-  </li>
+  <AudioPopover
+    audio={boardState.audio}
+    volume={audioVolume}
+    bind:loop={audioLoop}
+    onstop={onstopaudio}
+    {onvolume}
+  />
+
+  <FogPopover bind:active={fogToolActive} bind:brushMode bind:brushSize />
+
   <li class="relative">
     <button
       class="cursor-pointer text-zinc-300 hover:text-zinc-100"
@@ -102,7 +77,7 @@
     </button>
     {#if showDice}
       <div
-        class="absolute right-0 top-full mt-2 rounded-xl bg-zinc-900 p-3 shadow-xl"
+        class="absolute top-full right-0 mt-2 rounded-xl bg-zinc-900 p-3 shadow-xl"
         role="dialog"
         aria-label="Dice roller"
       >
@@ -110,27 +85,34 @@
       </div>
     {/if}
   </li>
+
   <li>
     <button
       class="cursor-pointer text-zinc-300 hover:text-zinc-100"
       aria-label="Toggle roll history"
-      onclick={() => (showRollHistory = !showRollHistory)}
+      onclick={ontogglerollhistory}
     >
       <History size={20} />
     </button>
   </li>
+
   <li>
     <button
-      class="cursor-pointer {boardState.initiative ? activeIcon : idleIcon}"
+      class="cursor-pointer {boardState.initiative
+        ? 'text-violet-300'
+        : 'text-zinc-300 hover:text-zinc-100'}"
       aria-label="Toggle initiative tracker"
       onclick={toggleInitiative}
     >
       <Swords size={20} />
     </button>
   </li>
+
   <li>
     <button
-      class="cursor-pointer {boardState.paused ? activeIcon : idleIcon}"
+      class="cursor-pointer {boardState.paused
+        ? 'text-violet-300'
+        : 'text-zinc-300 hover:text-zinc-100'}"
       aria-label={boardState.paused ? "Unpause game" : "Pause game"}
       onclick={togglePause}
     >
@@ -141,17 +123,18 @@
       {/if}
     </button>
   </li>
+
   <li class="relative">
     <button
       class="cursor-pointer text-zinc-300 hover:text-zinc-100"
       aria-label="Settings"
-      onclick={() => (showSettings = !showSettings)}
+      onclick={ontogglesettings}
     >
       <Settings size={20} />
     </button>
     {#if pendingCount > 0}
       <span
-        class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-zinc-900"
+        class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-zinc-900"
       >
         {pendingCount}
       </span>

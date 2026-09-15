@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Clock, Radio, Users, X } from "@lucide/svelte";
-  import GeneralTab from "$lib/components/Settings/GeneralTab.svelte";
-  import HistoryTab from "$lib/components/Settings/HistoryTab.svelte";
-  import PlayersTab from "$lib/components/Settings/PlayersTab.svelte";
+  import GeneralTab from "./Settings/GeneralTab.svelte";
+  import HistoryTab from "./Settings/HistoryTab.svelte";
+  import PlayersTab from "./Settings/PlayersTab.svelte";
 
   let {
     tableId,
@@ -26,6 +26,14 @@
     { id: "players", label: "Players", icon: Users },
     { id: "history", label: "History", icon: Clock },
   ];
+
+  const activeLabel = $derived(TABS.find((t) => t.id === tab)?.label);
+
+  function tabClass(id: Tab): string {
+    return id === tab
+      ? "bg-violet-500/20 text-violet-200"
+      : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100";
+  }
 </script>
 
 <div
@@ -48,9 +56,7 @@
       {#each TABS as t (t.id)}
         <button
           onclick={() => (tab = t.id)}
-          class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm {tab === t.id
-            ? 'bg-violet-500/20 text-violet-200'
-            : 'text-zinc-300 hover:bg-white/5 hover:text-zinc-100'}"
+          class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm {tabClass(t.id)}"
         >
           <t.icon size={16} />
           {t.label}
@@ -60,9 +66,7 @@
 
     <div class="flex flex-1 flex-col">
       <div class="flex items-center justify-between border-b border-white/10 px-5 py-3">
-        <span class="text-sm font-semibold text-zinc-100">
-          {TABS.find((t) => t.id === tab)?.label}
-        </span>
+        <span class="text-sm font-semibold text-zinc-100">{activeLabel}</span>
         <button onclick={onclose} aria-label="Close" class="text-zinc-400 hover:text-zinc-100">
           <X size={20} />
         </button>

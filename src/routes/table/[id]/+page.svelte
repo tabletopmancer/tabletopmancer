@@ -5,12 +5,12 @@
   import AssetDrawer from "$lib/components/AssetDrawer.svelte";
   import { playAudio, stopAudio } from "$lib/audio.remote";
   import DiceAnimation from "$lib/components/DiceAnimation.svelte";
-  import DmToolbar from "$lib/components/DmToolbar.svelte";
   import InitiativeTracker from "$lib/components/InitiativeTracker.svelte";
-  import PlayerBar from "$lib/components/PlayerBar.svelte";
+  import PlayerHud from "$lib/components/PlayerHud.svelte";
   import RollHistory from "$lib/components/RollHistory.svelte";
   import SettingsModal from "$lib/components/SettingsModal.svelte";
   import Table from "$lib/components/Table.svelte";
+  import DmToolbar from "$lib/components/Toolbar/DmToolbar.svelte";
   import { applyTableEvent } from "$lib/apply-table-event.js";
   import { pingTable } from "$lib/table.remote";
   import { boardLive } from "./board.remote";
@@ -184,22 +184,20 @@
 
   {#if data.role === "DM"}
     <DmToolbar
+      {boardState}
       tableId={data.tableId}
       role={data.role}
-      {boardState}
       {audioVolume}
       bind:audioLoop
       bind:fogToolActive
       bind:brushMode
       bind:brushSize
-      bind:showRollHistory
-      bind:showInitiative
-      bind:showSettings
-      onvolumechange={setAudioVolume}
       onstopaudio={handleStopAudio}
+      onvolume={setAudioVolume}
+      ontogglesettings={() => (showSettings = !showSettings)}
+      ontogglerollhistory={() => (showRollHistory = !showRollHistory)}
+      ontoggleinitiative={() => (showInitiative = !showInitiative)}
     />
-
-    <AssetDrawer assets={data.assets} onplayaudio={handlePlayAudio} />
 
     {#if showSettings}
       <SettingsModal
@@ -210,27 +208,30 @@
         onclose={() => (showSettings = false)}
       />
     {/if}
+
+    <AssetDrawer assets={data.assets} onplayaudio={handlePlayAudio} />
   {/if}
 
   {#if data.role === "PLAYER"}
     {#if boardState.paused}
       <div
-        class="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-zinc-900 shadow-lg"
+        class="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-zinc-900 shadow-lg"
       >
         Game paused by DM
       </div>
     {/if}
 
-    <PlayerBar
+    <PlayerHud
+      {boardState}
       tableId={data.tableId}
       role={data.role}
-      {boardState}
       {audioVolume}
       {audioBlocked}
-      bind:showRollHistory
-      bind:showInitiative
-      onvolumechange={setAudioVolume}
+      {showInitiative}
       onenableaudio={enableAudio}
+      onvolume={setAudioVolume}
+      ontogglerollhistory={() => (showRollHistory = !showRollHistory)}
+      ontoggleinitiative={() => (showInitiative = !showInitiative)}
     />
   {/if}
 

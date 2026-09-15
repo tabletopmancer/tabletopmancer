@@ -1,15 +1,10 @@
 <script lang="ts">
   import { getHistory } from "$lib/table.remote";
 
-  let {
-    tableId,
-    players,
-  }: {
-    tableId: string;
-    players: Player[];
-  } = $props();
+  let { tableId, players }: { tableId: string; players: Player[] } = $props();
 
   type HistoryEntry = { id: number; type: string; payload: any; timestamp: number };
+
   let history = $state<HistoryEntry[]>([]);
   let historyLoading = $state(false);
 
