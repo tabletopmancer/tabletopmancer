@@ -52,12 +52,12 @@
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
   },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
   "lint-staged": {
     "*.{ts,js,svelte,css,md}": "oxfmt --write",
     "*.{ts,js,svelte}": "oxlint"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged"
   },
   "engines": {
     "node": ">=24",
