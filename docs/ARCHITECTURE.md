@@ -1,90 +1,69 @@
 # Architecture
 
-Terms used here are defined in [GLOSSARY.md](GLOSSARY.md).
+Terms are defined in [GLOSSARY.md](GLOSSARY.md).
 
-## Single node, in-memory state
+## Single process
 
-The server keeps each board in memory and broadcasts events through a Node
-`EventEmitter` per table. Two server processes would therefore not see each
-other's events. The app must run as one process; it cannot be scaled
-horizontally without a shared broker.
+Boards are cached in memory and broadcast through one `EventEmitter` per table,
+so a second server process would not see the events of the first. The app cannot
+be scaled horizontally without a shared broker. The board cache and the SQLite
+handle cache each hold 100 tables, least-recently-used evicted.
 
-Both the board cache and the SQLite handle cache hold at most 100 tables and
-evict the least recently used entry.
+## Storage
 
-## Storage on the filesystem
-
-All data lives under `TABLETOPMANCER_HOME` (default
-`~/.local/share/tabletopmancer`), one SQLite database per table. There is no
-central database and no migration tool: new columns are added at open time by
-`migrate()` in `src/lib/server/db.ts`. See
-[ADR 0001](adr/0001-one-sqlite-database-per-table.md) and
+One SQLite file per table under `TABLETOPMANCER_HOME`. No central database and
+no migration tool: columns added later are applied at open time by `migrate()`.
+See [ADR 0001](adr/0001-one-sqlite-database-per-table.md) and
 [ADR 0004](adr/0004-table-directory-named-by-hash.md).
 
 ## Write path
 
-Every mutation goes through `dispatchTableEvent`:
+`dispatchTableEvent` persists the event and its log row in one transaction,
+folds it into the cached board, then broadcasts it. A ping skips this path: it is
+broadcast only.
 
-1. `persistTableEvent` writes the change, and the log row, in one SQLite
-   transaction.
-2. `applyTableEvent` updates the cached board.
-3. The emitter sends the event to the connected clients.
-
-`applyTableEvent` is pure and shared with the browser, so the client applies the
-same event to its own copy of the board. A new event type is only complete when
-it is added in three places: the `TableEvent` union in `src/app.d.ts`, the
-handler map in `apply-table-event.ts`, and the persister map in
-`persist-table-event.ts`. Both maps use `satisfies` over the union, so a missing
-handler fails the typecheck. See
+`applyTableEvent` is pure and runs on both sides, so the client folds the same
+event into its own copy. A new event type needs the `TableEvent` union, the
+apply map and the persist map; both maps use `satisfies`, so a missing case
+fails the typecheck. See
 [ADR 0002](adr/0002-table-events-as-the-only-mutation-path.md).
 
-A ping does not use this path. It is emitted directly, and is never saved.
+## Transport
 
-## Client transport
-
-Clients call remote functions (`*.remote.ts`). Reads and mutations are `query`
-and `command`; the live board and the join screen use `query.live` generators
-that stream events. There is no REST API and no websocket layer. See
-[ADR 0005](adr/0005-remote-functions-for-transport.md).
+Clients reach the server only through remote functions: `command`, `query`, and
+`query.live` generators for the board and the join screen. No REST, no
+websocket. See [ADR 0005](adr/0005-remote-functions-for-transport.md).
 
 ## Authorization
 
-Two independent mechanisms:
+- **DM**: server-wide, from the `ttm_dm` cookie. See
+  [ADR 0003](adr/0003-dm-login-by-startup-token.md).
+- **Player**: per table, from `ttm_token` mapped to a row in that table's
+  `sessions`.
 
-- **DM**: server-wide. `hooks.server.ts` sets `locals.role` from the `ttm_dm`
-  cookie. See [ADR 0003](adr/0003-dm-login-by-startup-token.md).
-- **Player**: per table. The `ttm_token` cookie maps to a player row in that
-  table's `sessions` table. A request for a table page without an approved
-  player is redirected to the join page.
-
-Remote functions repeat the check with `requireDm` or `requireParticipant`,
-because a remote function is a public endpoint and the hook cannot cover it by
-path alone.
+`hooks.server.ts` guards pages by path; a remote function is a public endpoint,
+so each one repeats the check with `requireDm` or `requireParticipant`.
 
 ## Filtering by role
 
-A player must never receive DM-only data. `board.remote.ts` filters both the
-first board snapshot and every later event: private rolls are dropped, NPC
-initiative entries are removed, and the audio name is stripped. Filtering
-happens on the server, never in the component.
+The server strips DM-only data from the first board snapshot and from every
+later event: private rolls, NPC initiative entries, the audio name. Never filter
+in a component.
 
 ## Asset serving
 
-`/table/[id]/asset/[...path]` reads files from the table's `codexes/` directory.
-The resolved path is checked against that directory before the read, to stop
-path traversal. The route requires an approved participant, so codex content is
-never public.
+`/table/[id]/asset/[...path]` requires an approved participant and checks the
+resolved path against the table's `codexes/` directory, to stop traversal.
 
 ## Codex loading
 
-The table page load scans `codexes/*/codex.json` and `codexes/*/campaign.json`,
-then globs each codex directory for known asset extensions. A `*.zip` codex is
-extracted first into a sibling directory, and the extraction is cached with a
-`.ttm-zip-source` marker file that holds the zip modification time. A directory
-without that marker is never overwritten, because it belongs to the user.
+The table page globs `codexes/*/codex.json` and `*/campaign.json`, then each
+codex directory for known extensions. A zip codex is extracted first, cached by
+a `.ttm-zip-source` marker holding the zip mtime; a directory without that
+marker belongs to the user and is never overwritten.
 
 ## Code health gate
 
-`fallow audit` runs on changed files in CI and fails a pull request on
-complexity, duplication and dead code. This is why helpers are often extracted
-from a function that would otherwise read as one block.
+`fallow audit` fails a pull request on complexity, duplication and dead code.
+This is why helpers are extracted from functions that would otherwise read as
+one block.
