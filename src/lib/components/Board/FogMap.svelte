@@ -187,6 +187,19 @@
 
     await updateFog({ tableId, mapId: map.id, patch });
   }
+
+  const fogBrushEnabled = $derived(fogToolActive && role === "DM");
+  const mapDraggable = $derived(role === "DM" && !fogToolActive);
+
+  const mapCursor = $derived.by(() => {
+    if (!mapDraggable) return "default";
+    return dragging ? "grabbing" : "grab";
+  });
+
+  const fogCursor = $derived.by(() => {
+    if (!fogBrushEnabled) return "default";
+    return brushMode === "reveal" ? "crosshair" : "cell";
+  });
 </script>
 
 {#if mapData}
@@ -198,7 +211,7 @@
     style:translate={`${localX}px ${localY}px`}
     class="map-node"
     class:dragging
-    style:cursor={role === "DM" && !fogToolActive ? (dragging ? "grabbing" : "grab") : "default"}
+    style:cursor={mapCursor}
   >
     <!-- svelte-ignore a11y_missing_attribute -->
     <img
@@ -211,12 +224,8 @@
     <canvas
       bind:this={canvasEl}
       class="fog-canvas"
-      style:pointer-events={fogToolActive && role === "DM" ? "auto" : "none"}
-      style:cursor={fogToolActive && role === "DM"
-        ? brushMode === "reveal"
-          ? "crosshair"
-          : "cell"
-        : "default"}
+      style:pointer-events={fogBrushEnabled ? "auto" : "none"}
+      style:cursor={fogCursor}
       onmousedown={onCanvasMouseDown}
       onmousemove={onCanvasMouseMove}
       onmouseup={stopPainting}
