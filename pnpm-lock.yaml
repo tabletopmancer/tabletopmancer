@@ -63,9 +63,6 @@ importers:
       glob:
         specifier: ^13.0.6
         version: 13.0.6
-      husky:
-        specifier: ^9.1.7
-        version: 9.1.7
       lint-staged:
         specifier: ^17.5.1
         version: 17.5.1
@@ -78,6 +75,9 @@ importers:
       oxlint:
         specifier: ^1.83.0
         version: 1.83.0
+      simple-git-hooks:
+        specifier: ^2.14.0
+        version: 2.14.0
       svelte:
         specifier: ^5.57.0
         version: 5.57.0
@@ -1160,11 +1160,6 @@ packages:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
-  husky@9.1.7:
-    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   is-core-module@2.16.2:
     resolution: {integrity: sha512-evOr8xfXKxE6qSR0hSXL2r3sd7ALj8+7jQEUvPYcm5sgZFdJ+AYzT6yNmJenvIYQBgIGwfwz08sL8zoL7yq2BA==}
     engines: {node: '>= 0.4'}
@@ -1474,6 +1469,10 @@ packages:
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
+
+  simple-git-hooks@2.14.0:
+    resolution: {integrity: sha512-kkTORPAuxQz2g1QUuN0J8yGWT28tjGBfPOdJ4xT7Vbeu30veKUZQIoID2qGgCDAakaQn59UeZJJ4cFGB8PVP2A==}
+    hasBin: true
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -2360,8 +2359,6 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  husky@9.1.7: {}
-
   is-core-module@2.16.2:
     dependencies:
       hasown: 2.0.4
@@ -2664,6 +2661,8 @@ snapshots:
   set-cookie-parser@3.1.0: {}
 
   siginfo@2.0.0: {}
+
+  simple-git-hooks@2.14.0: {}
 
   sirv@3.0.2:
     dependencies:
