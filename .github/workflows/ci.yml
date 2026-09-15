@@ -5,12 +5,17 @@ on:
     branches: [main]
   pull_request:
 
+# A new push to a PR cancels the run it supersedes
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   static:
-    name: Format, Lint & Analyze
+    name: Format, Lint, Typecheck & Analyze
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +42,9 @@ jobs:
       - name: Sync SvelteKit types
         run: pnpm exec svelte-kit sync
 
+      - name: Typecheck (svelte-check)
+        run: pnpm check
+
       - name: Analyze changed files (fallow)
         if: github.event_name == 'pull_request'
         run: pnpm analyze --base ${{ github.event.pull_request.base.sha }}
@@ -59,3 +67,22 @@ jobs:
 
       - name: Test (vitest)
         run: pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (vite)
+        run: pnpm build
