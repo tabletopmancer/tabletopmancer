@@ -18,7 +18,7 @@
     "test:e2e": "svelte-kit sync && vitest run --project e2e",
     "test:all": "svelte-kit sync && vitest run",
     "test:watch": "svelte-kit sync && vitest --project unit --project integration",
-    "prepare": "husky"
+    "prepare": "simple-git-hooks"
   },
   "dependencies": {
     "adm-zip": "^0.6.1"
@@ -41,12 +41,12 @@
     "fallow": "^3.25.0",
     "fs-extra": "^11.4.0",
     "glob": "^13.0.6",
-    "husky": "^9.1.7",
     "lint-staged": "^17.5.1",
     "mime": "^4.1.0",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "playwright": "^1.63.0",
+    "simple-git-hooks": "^2.14.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
     "svelte-gestures": "^5.2.2",
@@ -56,6 +56,9 @@
     "valibot": "^1.5.0",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
   },
   "lint-staged": {
     "*.{ts,js,svelte,css,md}": "oxfmt --write",
