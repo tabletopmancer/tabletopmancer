@@ -5,7 +5,10 @@
     "src/hooks.server.{ts,js}",
     "src/lib/index.{ts,js}",
     "src/lib/server/*.{ts,js}",
-    "src/**/*.test.{ts,js}"
+    "tests/**/*.test.{ts,js}",
+    "tests/e2e/global-setup.ts",
+    "tests/integration/setup.ts",
+    "tests/stubs/*.{ts,js}"
   ],
   "duplicates": {
     "minOccurrences": 3

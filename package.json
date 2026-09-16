@@ -13,9 +13,9 @@
     "analyze": "fallow audit",
     "preview": "vite preview",
     "test": "svelte-kit sync && vitest run --project unit --project integration",
-    "test:unit": "vitest run --project unit",
-    "test:integration": "vitest run --project integration",
-    "test:e2e": "vitest run --project e2e",
+    "test:unit": "svelte-kit sync && vitest run --project unit",
+    "test:integration": "svelte-kit sync && vitest run --project integration",
+    "test:e2e": "svelte-kit sync && vitest run --project e2e",
     "test:all": "svelte-kit sync && vitest run",
     "test:watch": "svelte-kit sync && vitest --project unit --project integration",
     "prepare": "husky"
