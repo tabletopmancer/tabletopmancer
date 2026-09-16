@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_DICE_COUNT, MAX_DICE_SIDES, parseFormula } from "./dice.js";
+import { MAX_DICE_COUNT, MAX_DICE_SIDES, parseFormula } from "$lib/dice.js";
 
 describe("parseFormula", () => {
   it("parses a simple formula", () => {

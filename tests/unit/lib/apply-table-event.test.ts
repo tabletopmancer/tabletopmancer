@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { applyTableEvent } from "./apply-table-event.js";
+import { applyTableEvent } from "$lib/apply-table-event.js";
 
 function makeToken(overrides: Partial<Token> = {}): Token {
   return { id: "t1", name: "Hero", position: { x: 0, y: 0 }, ...overrides };
@@ -131,6 +131,13 @@ describe("map events", () => {
 describe("dice and initiative events", () => {
   it("appends rolls to the history", () => {
     const roll = makeRoll();
+    applyTableEvent(state, { type: "dice:rolled", roll });
+    expect(state.rollHistory).toEqual([roll]);
+  });
+
+  it("ignores a roll it already holds", () => {
+    const roll = makeRoll();
+    applyTableEvent(state, { type: "dice:rolled", roll });
     applyTableEvent(state, { type: "dice:rolled", roll });
     expect(state.rollHistory).toEqual([roll]);
   });

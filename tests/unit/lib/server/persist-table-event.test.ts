@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
-import { persistTableEvent } from "./persist-table-event.js";
-import { SCHEMA } from "./schema.js";
+import { persistTableEvent } from "$lib/server/persist-table-event.js";
+import { SCHEMA } from "$lib/server/schema.js";
 
 let db: DatabaseSync;
 
