@@ -10,6 +10,9 @@
   "duplicates": {
     "minOccurrences": 3
   },
+  "health": {
+    "maxCognitive": 20
+  },
   // Vite inlines every devDependency into the build output, and moving a package
   // to "dependencies" is what makes Vite externalise it. The rule therefore only
   // reports the manifest layout back to itself and carries no signal here.

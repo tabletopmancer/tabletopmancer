@@ -49,6 +49,21 @@ jobs:
         if: github.event_name == 'pull_request'
         run: pnpm analyze --base ${{ github.event.pull_request.base.sha }}
 
+      # Report-only: the analyze step above is the gate, so a non-zero exit here
+      # (findings above threshold) must not fail the job a second time.
+      - name: Health report (fallow)
+        if: always()
+        run: |
+          pnpm exec fallow health --format github-summary >> "$GITHUB_STEP_SUMMARY" || true
+          pnpm exec fallow health --format json --output-file fallow-health.json || true
+
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fallow-health
+          path: fallow-health.json
+
   test:
     name: Test
     runs-on: ubuntu-latest
