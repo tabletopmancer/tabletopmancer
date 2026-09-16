@@ -12,7 +12,7 @@
     "system": {
       "type": "string",
       "description": "The short_name of the system codex this campaign is based on.",
-      "pattern": "[a-zA-Z_-]+"
+      "pattern": "^[a-zA-Z_-]+$"
     },
     "version": {
       "type": "string",

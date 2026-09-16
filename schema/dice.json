@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Dice",
-  "description": "A dice formula.",
-  "examples": ["1d4", "1d6", "1d8", "1d10", "1d12", "1d20"],
+  "description": "A dice formula: a dice count, the number of sides, and an optional flat modifier.",
+  "examples": ["1d4", "1d6", "1d8", "1d10", "1d12", "1d20", "1d8+2", "2d6-1"],
   "type": "string",
-  "pattern": "[\\d]{1,}d[\\d]{1,}"
+  "pattern": "^[0-9]+[dD][0-9]+([+-][0-9]+)?$"
 }

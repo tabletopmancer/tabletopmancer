@@ -12,7 +12,7 @@
     "short_name": {
       "type": "string",
       "description": "A short code for the codex, must be unique.",
-      "pattern": "[a-zA-Z_-]+"
+      "pattern": "^[a-zA-Z_-]+$"
     },
     "icon": {
       "type": "string",
